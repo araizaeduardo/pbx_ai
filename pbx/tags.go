@@ -31,12 +31,13 @@ func TagsProcess(platform, language, userId, message string, tags []string) (res
 	return
 }
 
+var tagExtractRe = regexp.MustCompile(`\s*\[([^\]]+)\]\s*$`)
+
 func TagsExtract(text string) (string, []string) {
-	re := regexp.MustCompile(`\s*\[([^\]]+)\]\s*$`)
 	var tags []string
 
 	for {
-		matches := re.FindStringSubmatchIndex(text)
+		matches := tagExtractRe.FindStringSubmatchIndex(text)
 		if len(matches) == 0 {
 			break
 		}

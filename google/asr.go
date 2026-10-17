@@ -16,6 +16,8 @@ import (
 	"github.com/eja/pbx/sys"
 )
 
+var httpClient = &http.Client{Timeout: 30 * time.Second}
+
 func ASR(filePath, language string) (string, error) {
 	aiSettings := db.Settings()
 	apiKey := aiSettings["asrToken"]
@@ -55,8 +57,7 @@ func ASR(filePath, language string) (string, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to send HTTP request: %v", err)
 	}

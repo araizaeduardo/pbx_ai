@@ -27,13 +27,13 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 3 — Calidad de código (baja severidad)
 
-- [ ] 🟢 **T-15** Validar longitud en `dtmfExtract` (`msg[11:]`) (`asterisk/agi.go`)
-- [ ] 🟢 **T-16** Revisar `set_var=set_var=...` duplicado en ARI (`asterisk/ari.go`)
-- [ ] 🟢 **T-17** `fmt.Errorf("Cannot create media folder", err)` sin verbo (`sys/main.go`)
+- [x] 🟢 **T-15** Validar longitud en `dtmfExtract` (`msg[11:]`) (`asterisk/agi.go`)
+- [x] 🟢 **T-16** Revisar `set_var=set_var=...` duplicado en ARI (`asterisk/ari.go`)
+- [x] 🟢 **T-17** `fmt.Errorf("Cannot create media folder", err)` sin verbo (`sys/main.go`)
 - [x] 🟢 **T-18** Mensaje de log `"mail error"` en plugin `ntfy` (`pbx/plugins.go`)
-- [ ] 🟢 **T-19** `send()` en AGI crea un `bufio.Reader` nuevo por llamada; reutilizar el de la sesión (`asterisk/agi.go`)
-- [ ] 🟢 **T-20** Evitar `regexp.MustCompile` en cada llamada; moverlo a variable global (`pbx/tags.go`)
-- [ ] 🟢 **T-21** Reutilizar `http.Client` compartido en vez de crear uno por petición
+- [x] 🟢 **T-19** `send()` en AGI crea un `bufio.Reader` nuevo por llamada; reutilizar el de la sesión (`asterisk/agi.go`)
+- [x] 🟢 **T-20** Evitar `regexp.MustCompile` en cada llamada; moverlo a variable global (`pbx/tags.go`)
+- [x] 🟢 **T-21** Reutilizar `http.Client` compartido en vez de crear uno por petición
 
 ## Fase 4 — Seguridad
 

@@ -18,6 +18,8 @@ import (
 	"github.com/eja/pbx/sys"
 )
 
+var httpClient = &http.Client{Timeout: 60 * time.Second}
+
 const asrModel = "whisper-1"
 const asrUrl = "https://api.openai.com/v1/audio/transcriptions"
 
@@ -78,8 +80,7 @@ func ASR(filePath string, languageCode string) (string, error) {
 	request.Header.Set("Authorization", "Bearer "+token)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	response, err := client.Do(request)
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return "", err
 	}

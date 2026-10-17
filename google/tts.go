@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
@@ -59,8 +58,7 @@ func TTS(filePath string, text string, languageCode string) error {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send HTTP request: %v", err)
 	}

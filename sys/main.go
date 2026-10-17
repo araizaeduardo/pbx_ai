@@ -53,7 +53,7 @@ func Configure() error {
 
 	if _, err := os.Stat(Options.MediaPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(Options.MediaPath, 0755); err != nil {
-			return fmt.Errorf("Cannot create media folder", err)
+			return fmt.Errorf("cannot create media folder: %w", err)
 		}
 	}
 

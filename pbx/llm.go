@@ -17,6 +17,8 @@ import (
 	"github.com/eja/pbx/sys"
 )
 
+var llmHttpClient = &http.Client{Timeout: 120 * time.Second}
+
 type LLMTool struct {
 	Description string
 	Parameters  any
@@ -147,7 +149,6 @@ func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool
 		})
 	}
 
-	httpClient := &http.Client{Timeout: 120 * time.Second}
 	const maxIterations = 5
 	for range maxIterations {
 		reqData := map[string]any{
@@ -171,7 +172,7 @@ func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 
-		resp, err := httpClient.Do(req)
+		resp, err := llmHttpClient.Do(req)
 		if err != nil {
 			return "", fmt.Errorf("error making request: %v", err)
 		}

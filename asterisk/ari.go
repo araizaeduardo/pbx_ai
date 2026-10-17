@@ -24,6 +24,8 @@ type AriPayload struct {
 	Fields []AriField `json:"fields"`
 }
 
+var httpClient = &http.Client{Timeout: 15 * time.Second}
+
 func ari(method, token, origin, class, id string, data AriPayload) (ariResponse []AriField, err error) {
 	url := fmt.Sprintf("%s/ari/asterisk/config/dynamic/res_pjsip/%s/%s", origin, class, id)
 	method = strings.ToUpper(method)
@@ -43,9 +45,7 @@ func ari(method, token, origin, class, id string, data AriPayload) (ariResponse 
 	base64Auth := base64.StdEncoding.EncodeToString([]byte(token))
 	req.Header.Set("Authorization", "Basic "+base64Auth)
 
-	client := &http.Client{Timeout: 15 * time.Second}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -139,7 +139,7 @@ func SipUpdate(address, username, password, trunk, webrtc string) (err error) {
 				{Attribute: "from_domain", Value: address},
 				{Attribute: "callerid", Value: "asreceived"},
 				{Attribute: "allow", Value: "!all,ulaw,alaw"},
-				{Attribute: "set_var", Value: fmt.Sprintf("set_var=AGI=agi://%s/%s", sys.Options.AsteriskAgi, token)},
+				{Attribute: "set_var", Value: fmt.Sprintf("AGI=agi://%s/%s", sys.Options.AsteriskAgi, token)},
 			},
 		}
 		if sys.Number(webrtc) > 0 {

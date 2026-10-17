@@ -20,6 +20,8 @@ import (
 	"github.com/eja/pbx/sys"
 )
 
+var httpClient = &http.Client{Timeout: 30 * time.Second}
+
 func settings(item string) string {
 	value := ""
 	aiSettings := db.Settings()
@@ -69,8 +71,7 @@ func metaRequest(method string, url string, body any, contentType string) ([]byt
 		req.Header.Set("Content-Type", contentType)
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("sending request: %w", err)
 	}
