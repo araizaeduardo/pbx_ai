@@ -23,6 +23,9 @@ func Ntfy(link, title, message, filePath string) (err error) {
 	} else {
 		req, err = http.NewRequest("POST", link, nil)
 	}
+	if err != nil {
+		return err
+	}
 
 	req.Header.Set("X-Title", strings.Trim(fmt.Sprintf("%q", title), `"`))
 	req.Header.Set("X-Message", strings.Trim(fmt.Sprintf("%q", message), `"`))
@@ -34,7 +37,7 @@ func Ntfy(link, title, message, filePath string) (err error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return err
+		return fmt.Errorf("ntfy returned status %d", resp.StatusCode)
 	}
 
 	return nil

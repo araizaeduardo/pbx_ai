@@ -78,6 +78,9 @@ func TTS(filePath string, text string, languageCode string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("TTS HTTP %d: %s", resp.StatusCode, string(body))
+	}
 
 	err = os.WriteFile(filePath, body, 0644)
 	if err != nil {

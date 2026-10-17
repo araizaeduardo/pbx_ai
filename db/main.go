@@ -16,9 +16,20 @@ func UserGetWithPassword(uuid, password string) (tibulaTypeRow, error) {
 		uuid, tibulaPassword(password), tibulaNow())
 }
 
-func UserUpdate(id string, field string, value string) (err error) {
-	query := fmt.Sprintf("UPDATE aiUsers SET %s = ? WHERE id = ?", field)
-	_, err = tibulaRun(query, value, id)
+var userUpdatableFields = map[string]bool{
+	"welcome":  true,
+	"language": true,
+	"audio":    true,
+	"name":     true,
+	"note":     true,
+}
+
+func UserUpdate(uuid string, field string, value string) (err error) {
+	if !userUpdatableFields[field] {
+		return fmt.Errorf("field %q cannot be updated", field)
+	}
+	query := fmt.Sprintf("UPDATE aiUsers SET %s = ? WHERE uuid = ?", field)
+	_, err = tibulaRun(query, value, uuid)
 	return
 }
 

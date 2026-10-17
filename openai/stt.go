@@ -88,6 +88,9 @@ func ASR(filePath string, languageCode string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("ASR HTTP %d: %s", response.StatusCode, string(responseBody))
+	}
 
 	var openAIResponse asrResponse
 	err = json.Unmarshal(responseBody, &openAIResponse)

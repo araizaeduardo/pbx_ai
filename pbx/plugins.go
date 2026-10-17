@@ -14,8 +14,7 @@ type PluginMap map[string]func(userId, language, action, output string) string
 
 var Plugins = PluginMap{
 	"reset": func(userId, language, action, output string) string {
-		delete(history, userId)
-		delete(historyThread, userId)
+		historyReset(userId)
 		return output
 	},
 	"mail": func(userId, language, action, output string) string {
@@ -29,7 +28,7 @@ var Plugins = PluginMap{
 		}
 
 		var sb strings.Builder
-		for _, msg := range history[userId] {
+		for _, msg := range historyGet(userId) {
 			content, _ := TagsExtract(msg.Content)
 			if msg.Role == "user" {
 				sb.WriteString(fmt.Sprintf("\nQ: %s\n", content))
@@ -57,7 +56,7 @@ var Plugins = PluginMap{
 		}
 
 		var sb strings.Builder
-		for _, msg := range history[userId] {
+		for _, msg := range historyGet(userId) {
 			content, _ := TagsExtract(msg.Content)
 			if msg.Role == "user" {
 				sb.WriteString(fmt.Sprintf("\nQ: %s\n", content))
@@ -69,7 +68,7 @@ var Plugins = PluginMap{
 		body = sb.String()
 		if output != "" {
 			if err := sys.Ntfy(output, subject, body, file); err != nil {
-				slog.Warn("mail error", "error", err)
+				slog.Warn("ntfy error", "error", err)
 			}
 		}
 		return output

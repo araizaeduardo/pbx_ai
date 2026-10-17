@@ -77,7 +77,7 @@ func ASR(filePath, language string) (string, error) {
 	}
 
 	results, ok := respData["results"].([]any)
-	if !ok {
+	if !ok || len(results) == 0 {
 		return "", nil
 	}
 

@@ -48,11 +48,12 @@ func TagsExtract(text string) (string, []string) {
 	return text, tags
 }
 
+var languageTagRe = regexp.MustCompile(`^[A-Za-z]{2}$`)
+
 func FilterLanguage(tags []string, language string) string {
-	re := regexp.MustCompile(`\[\w\w\]`)
 	for _, tag := range tags {
-		if re.MatchString(tag) {
-			language = tag[1:3]
+		if languageTagRe.MatchString(tag) {
+			language = strings.ToLower(tag)
 		}
 	}
 	return language

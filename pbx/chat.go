@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/eja/pbx/db"
@@ -13,10 +14,45 @@ import (
 	"github.com/eja/pbx/sys"
 )
 
-var history map[string][]sys.TypeChatMessage
-var historyTime map[string]time.Time
-var historyThread map[string]string
-var historyInit bool
+// maxHistoryMessages limits how many messages are kept per user.
+const maxHistoryMessages = 50
+
+var (
+	historyMu     sync.Mutex
+	history       = make(map[string][]sys.TypeChatMessage)
+	historyTime   = make(map[string]time.Time)
+	historyThread = make(map[string]string)
+)
+
+// historyAppend adds a message to the user history (trimmed to maxHistoryMessages)
+// and returns a copy of the resulting history.
+func historyAppend(userId string, msg sys.TypeChatMessage) []sys.TypeChatMessage {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	hist := append(history[userId], msg)
+	if len(hist) > maxHistoryMessages {
+		hist = append([]sys.TypeChatMessage(nil), hist[len(hist)-maxHistoryMessages:]...)
+	}
+	history[userId] = hist
+	historyTime[userId] = time.Now()
+	return append([]sys.TypeChatMessage(nil), hist...)
+}
+
+// historyGet returns a copy of the user history.
+func historyGet(userId string) []sys.TypeChatMessage {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	return append([]sys.TypeChatMessage(nil), history[userId]...)
+}
+
+// historyReset removes all the stored state for the user.
+func historyReset(userId string) {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	delete(history, userId)
+	delete(historyTime, userId)
+	delete(historyThread, userId)
+}
 
 var ChatProcess func(userId, system, message, language string, history []sys.TypeChatMessage, tools map[string]LLMTool) (string, error)
 
@@ -67,28 +103,12 @@ func Chat(platform, userId, message, language string) (string, error) {
 	}
 
 	if response == "" {
-		if !historyInit {
-			history = make(map[string][]sys.TypeChatMessage)
-			historyTime = make(map[string]time.Time)
-			historyThread = make(map[string]string)
-			historyInit = true
-		}
-
-		if hist, ok := history[userId]; ok && len(hist) > 0 {
-			history[userId] = append(history[userId], sys.TypeChatMessage{
-				Role:    "user",
-				Content: message,
-			})
-		} else {
-			history[userId] = []sys.TypeChatMessage{
-				{Role: "user", Content: message},
-			}
-		}
+		hist := historyAppend(userId, sys.TypeChatMessage{Role: "user", Content: message})
 
 		if ChatProcess != nil {
-			assistant, err = ChatProcess(userId, system, message, language, history[userId], Tools)
+			assistant, err = ChatProcess(userId, system, message, language, hist, Tools)
 		} else {
-			assistant, err = LLM(history[userId], system, Tools)
+			assistant, err = LLM(hist, system, Tools)
 		}
 		if err != nil {
 			slog.Error("chat error", "error", err)
@@ -96,11 +116,7 @@ func Chat(platform, userId, message, language string) (string, error) {
 		}
 		response = assistant
 
-		historyTime[userId] = time.Now()
-		history[userId] = append(history[userId], sys.TypeChatMessage{
-			Role:    "assistant",
-			Content: response,
-		})
+		historyAppend(userId, sys.TypeChatMessage{Role: "assistant", Content: response})
 	}
 
 	slog.Debug("chat response", "language", language, "user", userId, "response", response)
