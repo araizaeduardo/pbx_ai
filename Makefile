@@ -15,7 +15,7 @@ test:
 	@go mod tidy
 	@go mod verify
 	@go vet ./...
-	@go test -v ./test
+	@go test -v ./...
 
 pbx:
 	@mkdir -p $(BUILD_DIR)

@@ -49,9 +49,9 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 5 — Pruebas, CI y mantenimiento
 
-- [ ] 🟠 **T-31** Crear tests unitarios: `TagsExtract`, `FilterLanguage`, `MarkdownToText`, `dtmfExtract`
+- [x] 🟠 **T-31** Crear tests unitarios: `TagsExtract`, `FilterLanguage`, `MarkdownToText`, `dtmfExtract`
 - [ ] 🟡 **T-32** Tests con mock HTTP para `LLM()` (tool calls, errores, max iteraciones)
-- [ ] 🟡 **T-33** Workflow de GitHub Actions: `go vet`, `go test -race`, `staticcheck`, build
+- [x] 🟡 **T-33** Workflow de GitHub Actions: `go vet`, `go test -race`, `staticcheck`, build
 - [x] 🟡 **T-34** Instalar Go en el entorno local y verificar que compila (`go` no está en el PATH)
 - [ ] 🟢 **T-35** Añadir `.golangci.yml` y `make lint`
 - [ ] 🟢 **T-36** Actualizar dependencias (`go get -u`, `go mod tidy`) y revisar `govulncheck`

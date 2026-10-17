@@ -307,7 +307,11 @@ func dtmfExtract(msg string) string {
 	if len(msg) < 12 {
 		return ""
 	}
-	val := sys.Number(msg[11:])
+	fields := strings.Fields(msg[11:])
+	if len(fields) == 0 {
+		return ""
+	}
+	val := sys.Number(fields[0])
 	if val > 0 {
 		return string(rune(val))
 	}
