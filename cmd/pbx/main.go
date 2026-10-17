@@ -22,6 +22,9 @@ func main() {
 		if err := tibulaSys.Setup(); err != nil {
 			log.Fatal(err)
 		}
+		if err := pbxSys.DbSetup(); err != nil {
+			log.Fatal(err)
+		}
 	} else if tibulaSys.Commands.Wizard {
 		if err := tibulaSys.WizardSetup(); err != nil {
 			log.Fatal(err)

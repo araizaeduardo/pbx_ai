@@ -65,6 +65,10 @@ func Chat(platform, userId, message, language string) (string, error) {
 	timeZoneDiff := time.Duration(sys.Number(aiSettings["timezone"]))
 	timeZoneNow := time.Now().Add(timeZoneDiff * time.Hour).Format("Monday 02 of January 2006, 03:04 pm")
 
+	if language == "" {
+		language = i18n.DefaultLanguage()
+	}
+
 	slog.Debug("chat request", "language", language, "user", userId, "message", message)
 
 	system = "<system_prompt>"

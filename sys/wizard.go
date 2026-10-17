@@ -65,3 +65,14 @@ func Wizard() error {
 	Options.ConfigFile = ""
 	return sys.ConfigWrite(configFile, &Options)
 }
+
+func DbSetup() error {
+	db.Assets = dbAssets
+
+	dbs := db.Session()
+	if err := dbs.Open(Options.DbType, Options.DbName, Options.DbUser, Options.DbPass, Options.DbHost, Options.DbPort); err != nil {
+		return err
+	}
+	defer dbs.Close()
+	return dbs.Setup("")
+}
