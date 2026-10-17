@@ -3,6 +3,7 @@
 package web
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -35,8 +36,27 @@ type typeTelegramMessage struct {
 }
 
 func telegramRouter(w http.ResponseWriter, r *http.Request) {
+	ip := clientIP(r)
+	if !webhookRateLimiter.allow(ip) {
+		http.Error(w, "Too many requests", http.StatusTooManyRequests)
+		return
+	}
+
 	if r.Method == http.MethodPost {
 		const platform = "telegram"
+		aiSettings := db.Settings()
+
+		secret := aiSettings["telegramSecret"]
+		if secret != "" {
+			tokenHeader := r.Header.Get("X-Telegram-Bot-Api-Secret-Token")
+			if subtle.ConstantTimeCompare([]byte(tokenHeader), []byte(secret)) != 1 {
+				slog.Warn("Telegram, invalid secret token")
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 		var telegramMessage typeTelegramMessage
 
 		err := json.NewDecoder(r.Body).Decode(&telegramMessage)
@@ -51,7 +71,6 @@ func telegramRouter(w http.ResponseWriter, r *http.Request) {
 		userId := fmt.Sprintf("TG.%d", telegramMessage.Message.From.Id)
 		chatId := fmt.Sprintf("%d", telegramMessage.Message.Chat.Id)
 		chatLanguage := telegramMessage.Message.From.LanguageCode
-		aiSettings := db.Settings()
 
 		user, err := db.UserGet(userId)
 		if user == nil && sys.Number(aiSettings["userRestricted"]) < 1 {

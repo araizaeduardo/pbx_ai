@@ -5,6 +5,7 @@ package asterisk
 import (
 	"bufio"
 	"crypto/md5"
+	"crypto/subtle"
 	"fmt"
 	"log/slog"
 	"net"
@@ -76,7 +77,7 @@ func session(conn net.Conn) (err error) {
 		language = agi.language
 	}
 
-	if agi.token != asteriskToken {
+	if asteriskToken == "" || subtle.ConstantTimeCompare([]byte(agi.token), []byte(asteriskToken)) != 1 {
 		slog.Warn("AGI, wrong authorization token")
 	} else {
 		if sys.Number(aiSettings["userRestricted"]) == 0 {

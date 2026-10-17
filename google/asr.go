@@ -48,7 +48,7 @@ func ASR(filePath, language string) (string, error) {
 		return "", fmt.Errorf("failed to marshal JSON payload: %v", err)
 	}
 
-	apiURL := fmt.Sprintf("https://speech.googleapis.com/v1/speech:recognize?key=%s", apiKey)
+	apiURL := "https://speech.googleapis.com/v1/speech:recognize"
 
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
@@ -56,6 +56,9 @@ func ASR(filePath, language string) (string, error) {
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	if apiKey != "" {
+		req.Header.Set("X-Goog-Api-Key", apiKey)
+	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

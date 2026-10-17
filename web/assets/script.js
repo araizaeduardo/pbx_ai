@@ -79,7 +79,11 @@ function appendMessage(sender, type, content) {
             wrapper.textContent = content;
         } else {
             wrapper.className = classes + "align-self-start bg-white border text-dark";
-            wrapper.innerHTML = marked.parse(content).trim().replace(/^<p>/, "").replace(/<\/p>$/, "").replace(/<p><\/p>$/,"");
+            let parsed = marked.parse(content).trim().replace(/^<p>/, "").replace(/<\/p>$/, "").replace(/<p><\/p>$/,"");
+            if (window.DOMPurify) {
+                parsed = DOMPurify.sanitize(parsed);
+            }
+            wrapper.innerHTML = parsed;
         }
     } else {
         let classes = "mw-75 ";

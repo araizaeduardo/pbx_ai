@@ -31,12 +31,34 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 	const tag = "[chat]"
 	chatID := ""
 	language := ""
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	aiSettings := db.Settings()
+
+	cors := sys.Options.ChatCors
+	if cors == "" {
+		cors = aiSettings["chatCors"]
+	}
+	if cors == "" {
+		cors = "*"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", cors)
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	ip := clientIP(r)
+	if !chatRateLimiter.allow(ip) {
+		w.Header().Set("Retry-After", "60")
+		http.Error(w, "Too many requests", http.StatusTooManyRequests)
+		return
+	}
+
 	if sys.Number(aiSettings["userRestricted"]) > 0 {
 		user, pass, ok := r.BasicAuth()
-		if ok {
+		if ok && user != "" && pass != "" {
 			row, err := db.UserGetWithPassword(user, pass)
 			if err != nil || row["uuid"] == "" {
 				ok = false
@@ -45,6 +67,8 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 					language = row["language"]
 				}
 			}
+		} else {
+			ok = false
 		}
 		if !ok {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted Area"`)
@@ -53,11 +77,6 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 		}
 		chatID = user
 
-	}
-
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
 	}
 
 	if r.Method == http.MethodGet {
@@ -103,6 +122,7 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 	var isAudio bool
 
 	if strings.Contains(contentType, "application/json") {
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB max
 		var msg struct {
 			Text string `json:"text"`
 		}

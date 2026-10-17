@@ -3,7 +3,13 @@
 package web
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 
@@ -34,10 +40,20 @@ type typeMetaMessage struct {
 }
 
 func metaRouter(w http.ResponseWriter, r *http.Request) {
+	ip := clientIP(r)
+	if !webhookRateLimiter.allow(ip) {
+		http.Error(w, "Too many requests", http.StatusTooManyRequests)
+		return
+	}
+
 	if r.Method == http.MethodGet {
 		hubMode := r.URL.Query().Get("hub.mode")
 		verifyToken := r.URL.Query().Get("hub.verify_token")
-		if hubMode == "subscribe" && (verifyToken == sys.Options.MetaToken || verifyToken == db.Settings()["metaToken"]) {
+		metaToken := sys.Options.MetaToken
+		if metaToken == "" {
+			metaToken = db.Settings()["metaToken"]
+		}
+		if hubMode == "subscribe" && metaToken != "" && subtle.ConstantTimeCompare([]byte(verifyToken), []byte(metaToken)) == 1 {
 			w.Write([]byte(r.URL.Query().Get("hub.challenge")))
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
@@ -47,7 +63,29 @@ func metaRouter(w http.ResponseWriter, r *http.Request) {
 		const platform = "meta"
 		var metaMessage typeMetaMessage
 
-		err := json.NewDecoder(r.Body).Decode(&metaMessage)
+		bodyBytes, err := io.ReadAll(io.LimitReader(r.Body, 10<<20))
+		if err != nil {
+			http.Error(w, "Error reading request body", http.StatusBadRequest)
+			return
+		}
+
+		metaAuth := sys.Options.MetaAuth
+		if metaAuth == "" {
+			metaAuth = db.Settings()["metaAuth"]
+		}
+		if metaAuth != "" {
+			sig := r.Header.Get("X-Hub-Signature-256")
+			mac := hmac.New(sha256.New, []byte(metaAuth))
+			mac.Write(bodyBytes)
+			expectedSig := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+			if subtle.ConstantTimeCompare([]byte(sig), []byte(expectedSig)) != 1 {
+				slog.Warn("Meta, signature verification failed")
+				http.Error(w, "Invalid signature", http.StatusUnauthorized)
+				return
+			}
+		}
+
+		err = json.NewDecoder(bytes.NewReader(bodyBytes)).Decode(&metaMessage)
 		if err != nil {
 			errMessage := "Error decoding request body"
 			http.Error(w, errMessage, http.StatusBadRequest)

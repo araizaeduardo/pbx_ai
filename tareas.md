@@ -37,15 +37,15 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 4 — Seguridad
 
-- [ ] 🟠 **T-22** Restringir CORS `Access-Control-Allow-Origin: *` en `/chat` (configurable) (`web/chat.go`)
-- [ ] 🟠 **T-23** Validar firma `X-Hub-Signature-256` en webhook de Meta y secret token en Telegram (`web/meta.go`, `web/telegram.go`)
-- [ ] 🟡 **T-24** Comparar token AGI con `subtle.ConstantTimeCompare` (`asterisk/agi.go`)
-- [ ] 🟡 **T-25** No exponer la API key de Google en la URL (usar header) y evitar loguearla (`google/*`)
-- [ ] 🟡 **T-26** Limitar tamaño del body JSON en `/chat` con `http.MaxBytesReader`
-- [ ] 🟡 **T-27** Rate limiting por usuario/IP en chat y webhooks
+- [x] 🟠 **T-22** Restringir CORS `Access-Control-Allow-Origin: *` en `/chat` (configurable) (`web/chat.go`)
+- [x] 🟠 **T-23** Validar firma `X-Hub-Signature-256` en webhook de Meta y secret token en Telegram (`web/meta.go`, `web/telegram.go`)
+- [x] 🟡 **T-24** Comparar token AGI con `subtle.ConstantTimeCompare` (`asterisk/agi.go`)
+- [x] 🟡 **T-25** No exponer la API key de Google en la URL (usar header) y evitar loguearla (`google/*`)
+- [x] 🟡 **T-26** Limitar tamaño del body JSON en `/chat` con `http.MaxBytesReader`
+- [x] 🟡 **T-27** Rate limiting por usuario/IP en chat y webhooks
 - [x] 🟡 **T-28** Whitelist de campos en `UserUpdate` (evitar SQL por nombre de columna)
-- [ ] 🟢 **T-29** Revisar hash de contraseñas de Tibula (`tibulaPassword`) y política de expiración
-- [ ] 🟢 **T-30** Sanitizar HTML renderizado con `marked` (usar DOMPurify) en el chat web
+- [x] 🟢 **T-29** Revisar hash de contraseñas de Tibula (`tibulaPassword`) y política de expiración
+- [x] 🟢 **T-30** Sanitizar HTML renderizado con `marked` (usar DOMPurify) en el chat web
 
 ## Fase 5 — Pruebas, CI y mantenimiento
 

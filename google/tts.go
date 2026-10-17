@@ -50,13 +50,16 @@ func TTS(filePath string, text string, languageCode string) error {
 		return fmt.Errorf("failed to marshal request body: %v", err)
 	}
 
-	url := fmt.Sprintf("https://texttospeech.googleapis.com/v1/text:synthesize?key=%s", apiKey)
+	url := "https://texttospeech.googleapis.com/v1/text:synthesize"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	if apiKey != "" {
+		req.Header.Set("X-Goog-Api-Key", apiKey)
+	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
