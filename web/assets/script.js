@@ -118,6 +118,7 @@ async function sendText() {
     if (!text) return;
     appendMessage('me', 'text', text);
     inputText.value = '';
+    inputText.style.height = '';
     spinner.classList.remove('d-none');
     try {
         const response = await fetch(window.location.href, {
@@ -261,7 +262,13 @@ async function checkAudio() {
 
 async function chatRestart() {
   if (confirm("Restart chat?")) {
-      inputText.value = "/reset"
+      try {
+          await fetch(window.location.href, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: '/reset' })
+          });
+      } catch (err) {}
       document.location.href="?";
   }
 }

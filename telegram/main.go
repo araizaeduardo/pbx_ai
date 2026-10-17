@@ -10,10 +10,13 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
 )
+
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 type typeTelegramMediaData struct {
 	OK     bool           `json:"ok"`
@@ -45,11 +48,14 @@ func SendText(chatId string, text string) error {
 		return fmt.Errorf("error encoding payload: %v", err)
 	}
 
-	resp, err := http.Post(sendMessageURL, "application/json", bytes.NewBuffer(payloadBytes))
+	resp, err := httpClient.Post(sendMessageURL, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("error sending text message: %v", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("telegram sendMessage returned status %d", resp.StatusCode)
+	}
 
 	return nil
 }
@@ -57,7 +63,7 @@ func SendText(chatId string, text string) error {
 func MediaGet(fileId string, fileName string) error {
 	getFileURL := fmt.Sprintf("https://api.telegram.org/bot%s/getFile?file_id=%s", settings("telegramToken"), fileId)
 
-	resp, err := http.Get(getFileURL)
+	resp, err := httpClient.Get(getFileURL)
 	if err != nil {
 		return fmt.Errorf("error retrieving file path: %v", err)
 	}
@@ -76,7 +82,7 @@ func MediaGet(fileId string, fileName string) error {
 
 		fileURL := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", settings("telegramToken"), filePath)
 
-		fileResponse, err := http.Get(fileURL)
+		fileResponse, err := httpClient.Get(fileURL)
 		if err != nil {
 			return fmt.Errorf("error downloading file: %v", err)
 		}
@@ -129,11 +135,14 @@ func SendAudio(chatId string, fileName string, caption string) error {
 
 	writer.Close()
 
-	resp, err := http.Post(sendVoiceURL, writer.FormDataContentType(), body)
+	resp, err := httpClient.Post(sendVoiceURL, writer.FormDataContentType(), body)
 	if err != nil {
 		return fmt.Errorf("error sending audio: %v", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("telegram sendVoice returned status %d", resp.StatusCode)
+	}
 
 	return nil
 }

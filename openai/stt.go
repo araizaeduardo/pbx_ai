@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
@@ -77,7 +78,7 @@ func ASR(filePath string, languageCode string) (string, error) {
 	request.Header.Set("Authorization", "Bearer "+token)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 60 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
 		return "", err

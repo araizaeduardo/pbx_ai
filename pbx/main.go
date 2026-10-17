@@ -15,8 +15,11 @@ import (
 const maxAudioInputTime = 60
 const maxAudioOutputSize = 50 * 1000
 
+// chatPlatform is the prompt/action platform shared by web, Meta and Telegram.
+const chatPlatform = "chat"
+
 func Text(userId string, language string, text string) (response string, err error) {
-	platform := "chat"
+	platform := chatPlatform
 	var tags []string
 
 	response, err = Chat(platform, userId, text, language)
@@ -61,12 +64,12 @@ func Audio(platform string, userId string, language string, chatId string, media
 		return
 	}
 
-	responseRaw, err := Chat("chat", userId, transcript, language)
+	responseRaw, err := Chat(chatPlatform, userId, transcript, language)
 	if err != nil {
 		return
 	}
 	response, tags = TagsExtract(responseRaw)
-	response, err = TagsProcess(platform, language, userId, response, tags)
+	response, err = TagsProcess(chatPlatform, language, userId, response, tags)
 	if err != nil {
 		return
 	}

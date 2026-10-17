@@ -17,13 +17,13 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 2 — Bugs de severidad media
 
-- [ ] 🟡 **T-08** `pbx.Audio` usa `"chat"` fijo; debe usar `platform` (`pbx/main.go`)
-- [ ] 🟡 **T-09** `chatRestart` debe enviar `/reset` al servidor antes de recargar (`web/assets/script.js`)
-- [ ] 🟡 **T-10** Resetear altura del `textarea` tras enviar mensaje (`web/assets/script.js`)
-- [ ] 🟡 **T-11** Añadir `Timeout` a todos los `http.Client` (`pbx/llm.go`, `asterisk/ari.go`, `meta/main.go`, `openai/*`, `google/*`, `telegram/main.go`)
-- [ ] 🟡 **T-12** Comparar claves de ffprobe en snake_case: `codec_name`, `sample_rate`, `channel_layout` (`meta/main.go`)
-- [ ] 🟡 **T-13** Verificar status HTTP en `telegram.SendText` y `SendAudio`
-- [ ] 🟡 **T-14** Corregir `slog.Debug("ffmpeg", args)` (falta clave/valor) (`media/main.go`)
+- [x] 🟡 **T-08** `pbx.Audio`: se mantiene `"chat"` (Meta y Telegram usan los prompts de esa plataforma); `TagsProcess` ahora usa `chatPlatform` (`pbx/main.go`)
+- [x] 🟡 **T-09** `chatRestart` debe enviar `/reset` al servidor antes de recargar (`web/assets/script.js`)
+- [x] 🟡 **T-10** Resetear altura del `textarea` tras enviar mensaje (`web/assets/script.js`)
+- [x] 🟡 **T-11** Añadir `Timeout` a todos los `http.Client` (`pbx/llm.go`, `asterisk/ari.go`, `meta/main.go`, `openai/*`, `google/*`, `telegram/main.go`)
+- [x] 🟡 **T-12** Comparar claves de ffprobe en snake_case: `codec_name`, `sample_rate`, `channel_layout` (`meta/main.go`)
+- [x] 🟡 **T-13** Verificar status HTTP en `telegram.SendText` y `SendAudio`
+- [x] 🟡 **T-14** Corregir `slog.Debug("ffmpeg", args)` (falta clave/valor) (`media/main.go`)
 
 ## Fase 3 — Calidad de código (baja severidad)
 

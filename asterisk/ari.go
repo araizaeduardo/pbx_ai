@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
@@ -42,7 +43,7 @@ func ari(method, token, origin, class, id string, data AriPayload) (ariResponse 
 	base64Auth := base64.StdEncoding.EncodeToString([]byte(token))
 	req.Header.Set("Authorization", "Basic "+base64Auth)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 15 * time.Second}
 
 	resp, err := client.Do(req)
 	if err != nil {

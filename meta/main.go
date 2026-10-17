@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/media"
@@ -68,7 +69,7 @@ func metaRequest(method string, url string, body any, contentType string) ([]byt
 		req.Header.Set("Content-Type", contentType)
 	}
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("sending request: %w", err)
@@ -220,7 +221,7 @@ func SendAudio(phone string, mediaFile string) error {
 	if err != nil {
 		return fmt.Errorf("probing audio: %w", err)
 	}
-	if probeOutput["codecName"] == "opus" && probeOutput["sampleRate"] == "48000" && probeOutput["channelLayout"] == "mono" {
+	if probeOutput["codec_name"] == "opus" && probeOutput["sample_rate"] == "48000" && probeOutput["channel_layout"] == "mono" {
 		fileAudioOutput = mediaFile
 	} else {
 		err = media.MpegAudioMeta(mediaFile, fileAudioOutput)

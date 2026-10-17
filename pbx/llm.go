@@ -11,6 +11,7 @@ import (
 	"maps"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
@@ -146,7 +147,7 @@ func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool
 		})
 	}
 
-	httpClient := &http.Client{}
+	httpClient := &http.Client{Timeout: 120 * time.Second}
 	const maxIterations = 5
 	for range maxIterations {
 		reqData := map[string]any{
