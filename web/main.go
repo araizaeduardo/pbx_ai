@@ -26,6 +26,24 @@ func Router() error {
 	fileServer := http.FileServer(http.FS(assetFS))
 	web.Router.Handle("/pbx/", http.StripPrefix("/pbx/", fileServer))
 
+	tibulaCss, err := embeddedFiles.ReadFile("assets/tibula.css")
+	if err == nil {
+		web.Router.HandleFunc("/static/css/tibula.css", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/css; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+			w.Write(tibulaCss)
+		})
+	}
+
+	tibulaJs, err := embeddedFiles.ReadFile("assets/tibula.js")
+	if err == nil {
+		web.Router.HandleFunc("/static/js/tibula.js", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+			w.Write(tibulaJs)
+		})
+	}
+
 	if sys.Options.Chat || sys.Options.ChatAudio {
 		web.Router.HandleFunc("/chat", chatRouter)
 	}

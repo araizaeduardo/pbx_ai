@@ -69,16 +69,18 @@ function mergeBuffers(buffers) {
 }
 
 function appendMessage(sender, type, content) {
+    const welcome = document.getElementById('welcome-hero');
+    if (welcome) welcome.style.display = 'none';
+
     const wrapper = document.createElement('div');
     
     if (type === 'text') {
-        let classes = "p-2 ps-3 pe-3 rounded-2 shadow-sm mw-75 text-break ";
         if (sender === 'me') {
-            wrapper.className = classes + "align-self-end bg-primary text-white";
+            wrapper.className = "message-bubble message-user";
             wrapper.style.whiteSpace = "pre-wrap";
             wrapper.textContent = content;
         } else {
-            wrapper.className = classes + "align-self-start bg-white border text-dark";
+            wrapper.className = "message-bubble message-bot card-body";
             let parsed = marked.parse(content).trim().replace(/^<p>/, "").replace(/<\/p>$/, "").replace(/<p><\/p>$/,"");
             if (window.DOMPurify) {
                 parsed = DOMPurify.sanitize(parsed);
@@ -86,12 +88,7 @@ function appendMessage(sender, type, content) {
             wrapper.innerHTML = parsed;
         }
     } else {
-        let classes = "mw-75 ";
-        if (sender === 'me') {
-            wrapper.className = classes + "align-self-end";
-        } else {
-            wrapper.className = classes + "align-self-start";
-        }
+        wrapper.className = "message-bubble " + (sender === 'me' ? "message-user" : "message-bot");
         
         const audio = document.createElement('audio');
         audio.controls = true;
