@@ -1,38 +1,27 @@
 {
   "db_type": "sqlite",
   "db_name": "pbx.db",
-  "db_user": "",
-  "db_pass": "",
-  "db_host": "",
-  "db_port": 0,
-
   "web_port": 35248,
+  "web_host": "127.0.0.1",
+  "log_level": "info",
+  "media_path": "/tmp/pbx_media/",
+  "cache": "/tmp/pbx_cache/",
   "chat": true,
   "chat_audio": true,
   "chat_cors": "*",
-
-  "media_path": "/tmp/pbx/media/",
-  "cache": "/tmp/pbx/cache/",
-
-  "asterisk": true,
-  "asterisk_agi": "127.0.0.1:4573",
-  "asterisk_ari": "http://localhost:8088",
-  "asterisk_token": "asterisk_ari_secret_token",
-
-  "ai_token": "sk-proj-your-api-key-here",
+  "mail_sender": "pbx-alerts@empresa.com",
+  "alert_ntfy": "https://ntfy.sh/pbx_alerts_demo",
+  "ai_token": "sk-proj-demo-open-ai-token-pbx-ai-2024",
   "llm_url": "https://api.openai.com/v1/chat/completions",
-
-  "mcp_url": "http://localhost:8000/sse",
-  "mcp_token": "mcp_auth_token",
-
-  "telegram_token": "123456789:ABCdefGhIJKlmNoPQRstuVWXyz",
-
-  "meta_url": "https://graph.facebook.com/v21.0",
-  "meta_user": "100000000000000",
-  "meta_auth": "EAA...",
-  "meta_token": "meta_webhook_verify_token",
-
-  "alert_ntfy": "https://ntfy.sh/my-pbx-ai-alerts",
-  "log_level": 2,
-  "mail_sender": "pbx@example.com"
+  "telegram_token": "7182938475:AAH_DEMO_PBX_AI_BOT_TOKEN_TELEGRAM_2024",
+  "meta_url": "https://graph.facebook.com/v20.0/109283746592810/messages",
+  "meta_user": "109283746592810",
+  "meta_auth": "EAABwzLp12k8BAOzKeyDemoWhatsAppCloudAPI2024ProductionPBX",
+  "meta_token": "pbx_ai_webhook_verify_token_secure_99",
+  "asterisk": false,
+  "asterisk_agi": "127.0.0.1:4573",
+  "asterisk_ari": "http://127.0.0.1:8088/ari",
+  "asterisk_token": "ast_ari_pbx_secret_token_2024",
+  "mcp_url": "http://127.0.0.1:8000/mcp/sse",
+  "mcp_token": "mcp_sec_token_pbx_ai_production_7749"
 }
