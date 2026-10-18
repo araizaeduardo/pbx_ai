@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  pbx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pbx_ai
+    restart: unless-stopped
+    ports:
+      # Web Chat, Dashboard, /health, /metrics, Webhooks (/meta, /tg)
+      - "35248:35248"
+      # Asterisk AGI Telephony Server
+      - "4573:4573"
+    environment:
+      - TZ=UTC
+    volumes:
+      # Persistent SQLite database
+      - pbx_data:/app/data
+      # Media audio input/output processing
+      - pbx_media:/app/media
+      # Audio cache for fast TTS playback
+      - pbx_cache:/app/cache
+      # Optional: custom configuration file
+      # - ./pbx.json:/app/pbx.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:35248/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  pbx_data:
+  pbx_media:
+  pbx_cache:

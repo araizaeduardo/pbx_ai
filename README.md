@@ -43,8 +43,57 @@ Execute the integrated setup wizard to configure database parameters, API tokens
 ```
 
 ### 3. Service Deployment
-Initiate the service to deploy the web interface, the telephony AGI server, and the necessary webhook listeners:
+Initiate the service to deploy the web interface, the telephony FastAGI server, and the webhook listeners:
 
 ```bash
-./build/pbx --start
+./build/pbx --start --db-name pbx.db --chat --web-port 35248
 ```
+
+---
+
+## Operations & Telephony Dashboard
+
+PBX AI includes a built-in dark-mode operations dashboard accessible at:
+```
+http://localhost:35248/dashboard
+```
+
+- **Live Session Inspector:** View in-memory user conversations in real-time.
+- **Audit Logs:** Search and filter historical interactions (`aiLogs`) across Asterisk, WhatsApp, Telegram, and Web.
+- **Channel Breakdown & KPIs:** Total requests, token consumption, estimated costs, and average latency.
+- **Provider Status:** Live status check for LLM, Asterisk ARI/AGI, Meta, and Telegram.
+
+---
+
+## Observability & Health
+
+- **Health Check (`GET /health`):** JSON endpoint returning service uptime, database health, and channel states. Suitable for Docker and Kubernetes probes.
+- **Prometheus Metrics (`GET /metrics`):** Standard Prometheus metrics scraper exposing request counts, token consumption, latency counters, and active session gauges.
+
+---
+
+## Docker Deployment
+
+Run PBX AI instantly with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+Or build and run using Docker:
+
+```bash
+docker build -t pbx_ai .
+docker run -d -p 35248:35248 -p 4573:4573 --name pbx_ai pbx_ai
+```
+
+---
+
+## Documentation & Guides
+
+- [Configuration & CLI Reference](docs/config.md)
+- [System Architecture & Message Flow](docs/architecture.md)
+- [Asterisk Telephony Integration Guide](docs/asterisk_setup.md)
+- [Meta (WhatsApp) & Telegram Webhooks Guide](docs/webhooks.md)
+- [Changelog](CHANGELOG.md)
+

@@ -80,12 +80,12 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 8 — Despliegue y documentación
 
-- [ ] 🟡 **T-53** `Dockerfile` y `docker-compose.yml` (pbx + Asterisk + DB)
-- [ ] 🟡 **T-54** Documentar variables, flags y ejemplo de `pbx.json`
-- [ ] 🟡 **T-55** Guía de configuración de Asterisk (dialplan, PJSIP, AGI)
-- [ ] 🟢 **T-56** Guía de webhooks de Meta y Telegram
-- [ ] 🟢 **T-57** Documentar arquitectura y flujo de mensajes (diagrama)
-- [ ] 🟢 **T-58** `CHANGELOG.md` y política de versionado
+- [x] 🟡 **T-53** `Dockerfile` y `docker-compose.yml` (pbx + Asterisk + DB)
+- [x] 🟡 **T-54** Documentar variables, flags y ejemplo de `pbx.json`
+- [x] 🟡 **T-55** Guía de configuración de Asterisk (dialplan, PJSIP, AGI)
+- [x] 🟢 **T-56** Guía de webhooks de Meta y Telegram
+- [x] 🟢 **T-57** Documentar arquitectura y flujo de mensajes (diagrama)
+- [x] 🟢 **T-58** `CHANGELOG.md` y política de versionado
 
 ---
 
