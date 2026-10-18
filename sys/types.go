@@ -27,6 +27,7 @@ type typeConfigPbx struct {
 	Chat          bool   `json:"chat,omitempty"`
 	ChatAudio     bool   `json:"chat_audio,omitempty"`
 	ChatCors      string `json:"chat_cors,omitempty"`
+	AlertNtfy     string `json:"alert_ntfy,omitempty"`
 }
 
 type TypeChatMessage struct {

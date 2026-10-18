@@ -31,6 +31,12 @@ func Router() error {
 	}
 	web.Router.HandleFunc("/meta", metaRouter)
 	web.Router.HandleFunc("/tg", telegramRouter)
+	web.Router.HandleFunc("/health", healthRouter)
+	web.Router.HandleFunc("/metrics", metricsRouter)
+	web.Router.HandleFunc("/dashboard", dashboardRedirectRouter)
+	web.Router.HandleFunc("/api/dashboard/stats", dashboardStatsHandler)
+	web.Router.HandleFunc("/api/dashboard/logs", dashboardLogsHandler)
+	web.Router.HandleFunc("/api/dashboard/sessions", dashboardSessionsHandler)
 
 	api.Plugins["aiChat"] = func(eja api.Api, db api.DbSession) api.Api {
 		if eja.Action == "run" && eja.Values["chat"] != "" {

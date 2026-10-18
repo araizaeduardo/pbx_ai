@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBX AI — Operations & Telephony Dashboard</title>
+  <link rel="icon" type="image/png" href="/static/img/icon.png" />
+  <link rel="stylesheet" href="/pbx/dashboard.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+      </div>
+      <span>PBX AI</span>
+      <span class="brand-badge">TELEPHONY & CHAT</span>
+    </div>
+
+    <div class="nav-actions">
+      <div class="status-pill" id="system-status-pill">
+        <div class="status-dot"></div>
+        <span id="system-status-text">System Online</span>
+      </div>
+
+      <button class="btn" id="btn-refresh" title="Refresh Dashboard">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span id="refresh-label">Refresh</span>
+      </button>
+
+      <a href="/chat" class="btn btn-primary" target="_blank" title="Open Web Chat Client">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Open Chat</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-container">
+
+    <!-- KPI Metrics Cards -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Total Requests</span>
+          <div class="metric-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpi-requests">—</div>
+        <div class="metric-sub" id="kpi-requests-sub">All platforms combined</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Total LLM Tokens</span>
+          <div class="metric-icon" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpi-tokens">—</div>
+        <div class="metric-sub" id="kpi-cost">Est. cost: $0.00</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Average Latency</span>
+          <div class="metric-icon" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpi-latency">—</div>
+        <div class="metric-sub">Average response turnaround</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Active Sessions</span>
+          <div class="metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div class="metric-value" id="kpi-sessions">—</div>
+        <div class="metric-sub" id="kpi-uptime">Uptime: —</div>
+      </div>
+    </section>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-bar">
+      <button class="tab-btn active" data-tab="tab-overview">Overview & Channels</button>
+      <button class="tab-btn" data-tab="tab-sessions">Live Sessions</button>
+      <button class="tab-btn" data-tab="tab-logs">Audit Logs</button>
+      <button class="tab-btn" data-tab="tab-system">System Health</button>
+    </nav>
+
+    <!-- Tab 1: Overview -->
+    <div class="tab-content" id="tab-overview">
+      <div class="grid-2col">
+        <!-- Channels Breakdown -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Channels Activity Breakdown</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="channels-total-label">Distribution</span>
+          </div>
+
+          <div id="channels-list">
+            <div class="channel-row">
+              <div class="channel-info">
+                <span>Web Chat</span>
+                <span id="ch-web-count">0 msgs</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="ch-web-fill" style="width: 0%; background: var(--accent-indigo);"></div>
+              </div>
+            </div>
+
+            <div class="channel-row">
+              <div class="channel-info">
+                <span>Asterisk PBX (Voice Calls)</span>
+                <span id="ch-asterisk-count">0 calls</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="ch-asterisk-fill" style="width: 0%; background: var(--accent-emerald);"></div>
+              </div>
+            </div>
+
+            <div class="channel-row">
+              <div class="channel-info">
+                <span>WhatsApp / Meta</span>
+                <span id="ch-meta-count">0 msgs</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="ch-meta-fill" style="width: 0%; background: var(--accent-cyan);"></div>
+              </div>
+            </div>
+
+            <div class="channel-row">
+              <div class="channel-info">
+                <span>Telegram</span>
+                <span id="ch-tg-count">0 msgs</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="ch-tg-fill" style="width: 0%; background: #3b82f6;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Providers Status Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Providers & Integrations</h3>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>LLM Provider</span>
+              <span class="badge" id="prov-llm-badge">Checking...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Asterisk AGI / ARI</span>
+              <span class="badge" id="prov-asterisk-badge">Checking...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>WhatsApp (Meta)</span>
+              <span class="badge" id="prov-meta-badge">Checking...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Telegram Bot</span>
+              <span class="badge" id="prov-tg-badge">Checking...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Database Backend</span>
+              <span class="badge" id="prov-db-badge">Checking...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Live Sessions (T-49) -->
+    <div class="tab-content" id="tab-sessions" style="display: none;">
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Active User Sessions & Conversations</h3>
+          <span style="font-size: 0.85rem; color: var(--text-muted);" id="sessions-count-label">0 active sessions</span>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>User / Channel ID</th>
+                <th>Messages</th>
+                <th>Last Active</th>
+                <th>Last Message Preview</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                  No active in-memory sessions yet. Send a message via Web Chat, WhatsApp, Telegram or Asterisk to see it live!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Audit Logs (T-46) -->
+    <div class="tab-content" id="tab-logs" style="display: none;">
+      <div class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Audit & Interaction Logs (aiLogs)</h3>
+          <div class="filter-bar">
+            <select class="select-input" id="log-channel-filter">
+              <option value="all">All Channels</option>
+              <option value="chat">Web Chat</option>
+              <option value="asterisk">Asterisk PBX</option>
+              <option value="meta">WhatsApp</option>
+              <option value="telegram">Telegram</option>
+            </select>
+            <input type="text" class="search-input" id="log-search-input" placeholder="Search user, message or error...">
+            <button class="btn" id="btn-apply-filter">Filter</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Channel</th>
+                <th>Source / User</th>
+                <th>Model</th>
+                <th>Latency</th>
+                <th>Tokens</th>
+                <th>Message / Error</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                  Loading audit logs...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: System Health & Observability -->
+    <div class="tab-content" id="tab-system" style="display: none;">
+      <div class="grid-2col">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Observability Endpoints</h3>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+            Standardized monitoring endpoints ready for integration with Prometheus, Grafana, Docker HEALTHCHECK, and uptime bots:
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>/health</strong>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">JSON health check (DB, channels, sessions)</div>
+              </div>
+              <a href="/health" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem;">View JSON</a>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>/metrics</strong>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">Prometheus format metrics for scraping</div>
+              </div>
+              <a href="/metrics" target="_blank" class="btn" style="padding: 4px 10px; font-size: 0.75rem;">View Scrape</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Runtime & Memory Diagnostics</h3>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Allocated Heap:</span>
+              <span id="diag-alloc">—</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Total System Memory:</span>
+              <span id="diag-sys">—</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Active Goroutines:</span>
+              <span id="diag-goroutines">—</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Database:</span>
+              <span id="diag-database">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Session Inspection Drawer Modal -->
+  <div class="drawer-backdrop" id="session-drawer-backdrop">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 700;" id="drawer-user-id">Session Dialogue</h3>
+          <span style="font-size: 0.78rem; color: var(--text-dim);" id="drawer-user-sub">Message history</span>
+        </div>
+        <button class="btn" id="drawer-close-btn" style="padding: 6px 10px;">&times;</button>
+      </div>
+      <div class="chat-bubble-container" id="drawer-bubbles">
+        <!-- Message bubbles populated via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/pbx/dashboard.js"></script>
+</body>
+</html>

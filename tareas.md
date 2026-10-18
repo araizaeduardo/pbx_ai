@@ -70,13 +70,13 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 7 — Dashboard y observabilidad
 
-- [ ] 🟠 **T-46** Ampliar `aiLogs`: canal, tokens, latencia, modelo, error
-- [ ] 🟠 **T-47** Endpoint `/metrics` en formato Prometheus (peticiones, latencia, errores, tokens)
-- [ ] 🟡 **T-48** Dashboard web: mensajes/día, llamadas, usuarios activos, costos estimados
-- [ ] 🟡 **T-49** Vista de conversaciones en vivo / historial por usuario en el panel
-- [ ] 🟡 **T-50** Alertas (ntfy/mail) ante errores repetidos o caídas de proveedores
-- [ ] 🟢 **T-51** Endpoint `/health` para monitoreo y Docker
-- [ ] 🟢 **T-52** Logging estructurado con niveles configurables por flag
+- [x] 🟠 **T-46** Ampliar `aiLogs`: canal, tokens, latencia, modelo, error
+- [x] 🟠 **T-47** Endpoint `/metrics` en formato Prometheus (peticiones, latencia, errores, tokens)
+- [x] 🟡 **T-48** Dashboard web: mensajes/día, llamadas, usuarios activos, costos estimados
+- [x] 🟡 **T-49** Vista de conversaciones en vivo / historial por usuario en el panel
+- [x] 🟡 **T-50** Alertas (ntfy/mail) ante errores repetidos o caídas de proveedores
+- [x] 🟢 **T-51** Endpoint `/health` para monitoreo y Docker
+- [x] 🟢 **T-52** Logging estructurado con niveles configurables por flag
 
 ## Fase 8 — Despliegue y documentación
 

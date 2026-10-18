@@ -5,6 +5,7 @@ package sys
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/eja/tibula/sys"
@@ -32,6 +33,7 @@ func Configure() error {
 	flag.BoolVar(&Options.Chat, "chat", false, "Enable web chat")
 	flag.BoolVar(&Options.ChatAudio, "chat-audio", false, "Enable web chat with audio support")
 	flag.StringVar(&Options.ChatCors, "chat-cors", "*", "Web chat CORS allowed origin")
+	flag.StringVar(&Options.AlertNtfy, "alert-ntfy", "", "Ntfy topic URL for critical failure alerts")
 	flag.Usage = Help
 
 	if err := sys.Configure(); err != nil {
@@ -52,6 +54,8 @@ func Configure() error {
 		}
 	}
 
+	setupLogging(Options.LogLevel)
+
 	if _, err := os.Stat(Options.MediaPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(Options.MediaPath, 0755); err != nil {
 			return fmt.Errorf("cannot create media folder: %w", err)
@@ -59,4 +63,25 @@ func Configure() error {
 	}
 
 	return nil
+}
+
+func setupLogging(levelInt int) {
+	var level slog.Level
+	switch levelInt {
+	case 3:
+		level = slog.LevelDebug
+	case 2:
+		level = slog.LevelInfo
+	case 1:
+		level = slog.LevelWarn
+	case 0:
+		level = slog.LevelError
+	default:
+		if levelInt > 3 {
+			level = slog.LevelDebug
+		} else {
+			level = slog.LevelInfo
+		}
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 }

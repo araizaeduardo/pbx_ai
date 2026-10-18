@@ -89,6 +89,9 @@ func Chat(platform, userId, message, language string) (string, error) {
 	system += "Always add a new line containing the language code, 2 chars, between square brackets that you have used to answer the question at the end of your response, like this: \n\n[en]\n"
 	system += "</pbx_core>\n</system_prompt>"
 
+	startReq := time.Now()
+	var details LLMDetails
+
 	if strings.HasPrefix(message, "/") {
 		action = true
 		parameters := strings.Split(message, " ")
@@ -103,7 +106,11 @@ func Chat(platform, userId, message, language string) (string, error) {
 			response = actionResponse
 		}
 	} else {
-		db.Log(userId, message)
+		_ = db.LogEntryWrite(db.LogEntry{
+			Source:  userId,
+			Message: message,
+			Channel: platform,
+		})
 	}
 
 	if response == "" {
@@ -111,22 +118,89 @@ func Chat(platform, userId, message, language string) (string, error) {
 
 		if ChatProcess != nil {
 			assistant, err = ChatProcess(userId, system, message, language, hist, Tools)
+			details.Content = assistant
+			details.LatencyMs = time.Since(startReq).Milliseconds()
 		} else {
-			assistant, err = LLM(hist, system, Tools)
+			details, err = LLMWithDetails(hist, system, Tools)
+			assistant = details.Content
 		}
 		if err != nil {
+			sys.RecordRequest(platform, false, time.Since(startReq).Milliseconds(), 0, details.Model, err)
+			_ = db.LogEntryWrite(db.LogEntry{
+				Source:    userId,
+				Message:   message,
+				Channel:   platform,
+				Model:     details.Model,
+				LatencyMs: time.Since(startReq).Milliseconds(),
+				Error:     err.Error(),
+			})
 			slog.Error("chat error", "error", err)
 			return "", err
 		}
 		response = assistant
+		sys.RecordRequest(platform, true, details.LatencyMs, details.TotalTokens, details.Model, nil)
 
 		historyAppend(userId, sys.TypeChatMessage{Role: "assistant", Content: response})
 	}
 
 	slog.Debug("chat response", "language", language, "user", userId, "response", response)
 	if !action {
-		db.Log(userId, response)
+		_ = db.LogEntryWrite(db.LogEntry{
+			Source:    userId,
+			Message:   response,
+			Channel:   platform,
+			Tokens:    details.TotalTokens,
+			LatencyMs: details.LatencyMs,
+			Model:     details.Model,
+		})
 	}
 
 	return response, nil
+}
+
+type SessionSummary struct {
+	UserID         string                `json:"user_id"`
+	MessageCount   int                   `json:"message_count"`
+	LastActive     string                `json:"last_active"`
+	LastActiveUnix int64                 `json:"last_active_unix"`
+	LastMessage    string                `json:"last_message"`
+	History        []sys.TypeChatMessage `json:"history,omitempty"`
+}
+
+func GetActiveSessions(includeHistory bool) []SessionSummary {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	sessions := []SessionSummary{}
+	for uid, msgs := range history {
+		if len(msgs) == 0 {
+			continue
+		}
+		lastMsg := ""
+		if len(msgs) > 0 {
+			lastMsg = msgs[len(msgs)-1].Content
+		}
+		t := historyTime[uid]
+		s := SessionSummary{
+			UserID:         uid,
+			MessageCount:   len(msgs),
+			LastActive:     t.Format(time.RFC3339),
+			LastActiveUnix: t.Unix(),
+			LastMessage:    lastMsg,
+		}
+		if includeHistory {
+			s.History = append([]sys.TypeChatMessage(nil), msgs...)
+		}
+		sessions = append(sessions, s)
+	}
+	return sessions
+}
+
+func GetActiveSessionCount() int {
+	historyMu.Lock()
+	defer historyMu.Unlock()
+	return len(history)
+}
+
+func init() {
+	sys.ActiveSessionsProvider = GetActiveSessionCount
 }

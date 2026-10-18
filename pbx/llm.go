@@ -68,6 +68,11 @@ type llmResponse struct {
 	Object  string `json:"object"`
 	Created int64  `json:"created"`
 	Model   string `json:"model"`
+	Usage   struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+		TotalTokens      int `json:"total_tokens"`
+	} `json:"usage"`
 	Choices []struct {
 		Index        int                `json:"index"`
 		Message      llmResponseMessage `json:"message"`
@@ -76,14 +81,32 @@ type llmResponse struct {
 	} `json:"choices"`
 }
 
+type LLMDetails struct {
+	Content          string `json:"content"`
+	Model            string `json:"model"`
+	TotalTokens      int    `json:"total_tokens"`
+	PromptTokens     int    `json:"prompt_tokens"`
+	CompletionTokens int    `json:"completion_tokens"`
+	LatencyMs        int64  `json:"latency_ms"`
+}
+
 func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool) (string, error) {
+	details, err := LLMWithDetails(messages, system, tools)
+	return details.Content, err
+}
+
+func LLMWithDetails(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool) (LLMDetails, error) {
+	start := time.Now()
+	var details LLMDetails
+	var totalTokens, promptTokens, compTokens int
+
 	aiSettings := db.Settings()
 	url := sys.Options.LlmUrl
 	if url == "" {
 		url = aiSettings["llmUrl"]
 	}
 	if url == "" {
-		return "", fmt.Errorf("llm url cannot be empty")
+		return details, fmt.Errorf("llm url cannot be empty")
 	}
 	model := aiSettings["llmModel"]
 	token := aiSettings["llmToken"]
@@ -162,42 +185,55 @@ func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool
 
 		payload, err := json.Marshal(reqData)
 		if err != nil {
-			return "", fmt.Errorf("error marshaling JSON: %v", err)
+			return details, fmt.Errorf("error marshaling JSON: %v", err)
 		}
 
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 		if err != nil {
-			return "", fmt.Errorf("error creating request: %v", err)
+			return details, fmt.Errorf("error creating request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		resp, err := llmHttpClient.Do(req)
 		if err != nil {
-			return "", fmt.Errorf("error making request: %v", err)
+			return details, fmt.Errorf("error making request: %v", err)
 		}
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			return "", fmt.Errorf("LLM HTTP %d: %s", resp.StatusCode, string(body))
+			return details, fmt.Errorf("LLM HTTP %d: %s", resp.StatusCode, string(body))
 		}
 
 		var response llmResponse
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		resp.Body.Close()
 		if err != nil {
-			return "", fmt.Errorf("error decoding JSON response: %v", err)
+			return details, fmt.Errorf("error decoding JSON response: %v", err)
 		}
 
 		if len(response.Choices) == 0 {
-			return "", fmt.Errorf("no choices returned in response")
+			return details, fmt.Errorf("no choices returned in response")
 		}
+
+		promptTokens += response.Usage.PromptTokens
+		compTokens += response.Usage.CompletionTokens
+		totalTokens += response.Usage.TotalTokens
 
 		msg := response.Choices[0].Message
 
 		if len(msg.ToolCalls) == 0 {
-			return msg.Content, nil
+			details.Content = msg.Content
+			details.Model = response.Model
+			if details.Model == "" {
+				details.Model = model
+			}
+			details.PromptTokens = promptTokens
+			details.CompletionTokens = compTokens
+			details.TotalTokens = totalTokens
+			details.LatencyMs = time.Since(start).Milliseconds()
+			return details, nil
 		}
 
 		reqMessages = append(reqMessages, llmRequestMessage{
@@ -232,5 +268,5 @@ func LLM(messages []sys.TypeChatMessage, system string, tools map[string]LLMTool
 		}
 	}
 
-	return "", fmt.Errorf("exceeded max tool call iterations")
+	return details, fmt.Errorf("exceeded max tool call iterations")
 }
