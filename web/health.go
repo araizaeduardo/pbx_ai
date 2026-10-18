@@ -13,13 +13,13 @@ import (
 )
 
 type HealthResponse struct {
-	Status         string            `json:"status"`
-	Version        string            `json:"version"`
-	UptimeSeconds  int64             `json:"uptime_seconds"`
-	Timestamp      string            `json:"timestamp"`
-	Database       string            `json:"database"`
-	Channels       map[string]bool   `json:"channels"`
-	ActiveSessions int               `json:"active_sessions"`
+	Status         string          `json:"status"`
+	Version        string          `json:"version"`
+	UptimeSeconds  int64           `json:"uptime_seconds"`
+	Timestamp      string          `json:"timestamp"`
+	Database       string          `json:"database"`
+	Channels       map[string]bool `json:"channels"`
+	ActiveSessions int             `json:"active_sessions"`
 }
 
 func healthRouter(w http.ResponseWriter, r *http.Request) {

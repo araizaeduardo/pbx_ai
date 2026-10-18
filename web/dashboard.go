@@ -7,31 +7,55 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/pbx"
 	"github.com/eja/pbx/sys"
 )
 
+// dashboardAuthFailLimiter throttles failed login attempts per IP to slow down brute force.
+var dashboardAuthFailLimiter = newRateLimiter(10, time.Minute)
+
+// checkDashboardAuth always requires HTTP Basic credentials. Tibula admin users
+// (ejaUsers) are always accepted; aiUsers are accepted too when userRestricted is on.
 func checkDashboardAuth(w http.ResponseWriter, r *http.Request) bool {
-	aiSettings := db.Settings()
-	if sys.Number(aiSettings["userRestricted"]) > 0 {
-		user, pass, ok := r.BasicAuth()
-		if ok && user != "" && pass != "" {
-			row, err := db.UserGetWithPassword(user, pass)
-			if err != nil || row["uuid"] == "" {
-				ok = false
-			}
-		} else {
-			ok = false
-		}
-		if !ok {
-			w.Header().Set("WWW-Authenticate", `Basic realm="PBX AI Dashboard"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return false
+	unauthorized := func(status int, msg string) bool {
+		w.Header().Set("WWW-Authenticate", `Basic realm="PBX AI Dashboard", charset="UTF-8"`)
+		http.Error(w, msg, status)
+		return false
+	}
+
+	tooMany := func() bool {
+		w.Header().Set("Retry-After", "60")
+		http.Error(w, "Too many failed attempts", http.StatusTooManyRequests)
+		return false
+	}
+
+	ip := clientIP(r)
+	if dashboardAuthFailLimiter.blocked(ip) {
+		return tooMany()
+	}
+
+	user, pass, ok := r.BasicAuth()
+	if !ok || user == "" || pass == "" {
+		return unauthorized(http.StatusUnauthorized, "Unauthorized")
+	}
+
+	if db.AdminCheck(user, pass) {
+		return true
+	}
+	if sys.Number(db.Settings()["userRestricted"]) > 0 {
+		if row, err := db.UserGetWithPassword(user, pass); err == nil && row["uuid"] != "" {
+			return true
 		}
 	}
-	return true
+
+	// Record the failed attempt.
+	if !dashboardAuthFailLimiter.allow(ip) {
+		return tooMany()
+	}
+	return unauthorized(http.StatusUnauthorized, "Unauthorized")
 }
 
 func dashboardRedirectRouter(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +98,12 @@ func dashboardStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := map[string]any{
 		"system": map[string]any{
-			"version":        sys.Version,
-			"uptime_seconds": rt.UptimeSeconds,
+			"version":         sys.Version,
+			"uptime_seconds":  rt.UptimeSeconds,
 			"active_sessions": rt.ActiveSessions,
-			"goroutines":     runtime.NumGoroutine(),
-			"alloc_mb":       float64(mem.Alloc) / 1024 / 1024,
-			"sys_mb":         float64(mem.Sys) / 1024 / 1024,
+			"goroutines":      runtime.NumGoroutine(),
+			"alloc_mb":        float64(mem.Alloc) / 1024 / 1024,
+			"sys_mb":          float64(mem.Sys) / 1024 / 1024,
 		},
 		"metrics": map[string]any{
 			"total_requests":     dbStats.TotalRequests,

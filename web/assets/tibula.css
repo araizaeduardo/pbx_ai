@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
+  color-scheme: dark;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -14,12 +15,15 @@
   --bg-input-focus: #0f172a;
   
   --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(255, 255, 255, 0.16);
+  --border-input-hover: rgba(99, 102, 241, 0.45);
   --border-hover: rgba(99, 102, 241, 0.35);
   --border-active: #6366f1;
 
   --text-main: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
+  --text-placeholder: #8291a7;
   --text-inverse: #0f172a;
 
   /* Accent Colors */
@@ -374,46 +378,224 @@ h6.text-center.mt-5 {
   margin-top: 2.5rem !important;
 }
 
-/* Form Controls */
+/* Form Controls & Labels */
 .form-label {
   color: var(--text-secondary) !important;
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 6px;
   letter-spacing: 0.02em;
+  display: inline-block;
 }
 
-.form-control, .form-select, textarea.form-control {
+input, select, textarea {
+  color-scheme: dark;
+}
+
+.form-control, textarea.form-control {
   background-color: var(--bg-input) !important;
-  border: 1px solid var(--border-subtle) !important;
+  border: 1px solid var(--border-input) !important;
   color: var(--text-main) !important;
   border-radius: var(--radius-sm) !important;
   padding: 10px 14px !important;
   font-size: 0.92rem;
   font-family: var(--font-sans);
-  transition: all 0.2s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
   box-shadow: none !important;
 }
 
+/* High-contrast Select with dedicated right-padding to avoid text/arrow overlap */
+.form-select {
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-input) !important;
+  color: var(--text-main) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 42px 10px 14px !important;
+  font-size: 0.92rem;
+  font-family: var(--font-sans);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a5b4fc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 16px 12px !important;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: none !important;
+}
+
+.form-select option {
+  background-color: #0f172a;
+  color: var(--text-main);
+  padding: 8px;
+}
+
+/* Form Hover States */
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled):not([readonly]),
+textarea.form-control:hover:not(:disabled):not([readonly]) {
+  border-color: var(--border-input-hover) !important;
+}
+
+/* Form Focus States */
 .form-control:focus, .form-select:focus, textarea.form-control:focus {
   background-color: var(--bg-input-focus) !important;
   border-color: var(--border-active) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.28) !important;
   color: #ffffff !important;
+  outline: none !important;
 }
 
-.form-control::placeholder {
+/* Placeholder Contrast */
+.form-control::placeholder, textarea.form-control::placeholder {
+  color: var(--text-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Disabled & Readonly Controls */
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled,
+textarea.form-control:disabled,
+textarea.form-control[readonly] {
+  background-color: rgba(15, 23, 42, 0.65) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
   color: var(--text-muted) !important;
+  opacity: 0.72;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 
-.form-check-input {
-  background-color: var(--bg-input) !important;
-  border-color: var(--border-subtle) !important;
+/* Browser Autofill Protection */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-main) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-input) inset !important;
+  box-shadow: 0 0 0px 1000px var(--bg-input) inset !important;
+  caret-color: var(--text-main) !important;
+  border-color: var(--border-input) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-input-focus) inset, 0 0 0 3px rgba(99, 102, 241, 0.28) !important;
+  box-shadow: 0 0 0px 1000px var(--bg-input-focus) inset, 0 0 0 3px rgba(99, 102, 241, 0.28) !important;
+  border-color: var(--border-active) !important;
+}
+
+/* Checkboxes & Radios */
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 1.5rem;
+}
+.form-check-label {
+  color: var(--text-main) !important;
+  font-size: 0.9rem;
   cursor: pointer;
+  user-select: none;
+}
+.form-check-input {
+  width: 1.15em;
+  height: 1.15em;
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 4px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 .form-check-input:checked {
   background-color: var(--primary) !important;
   border-color: var(--primary) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+  border-color: var(--border-active) !important;
+}
+
+/* Form Switches */
+.form-switch {
+  padding-left: 3em !important;
+}
+.form-switch .form-check-input {
+  width: 2.6em !important;
+  height: 1.4em !important;
+  margin-left: -3em !important;
+  border-radius: 2em !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2394a3b8'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: left center !important;
+  transition: background-position 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.form-switch .form-check-input:checked {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  background-position: right center !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e") !important;
+}
+
+/* Form Validation Feedback */
+.form-control.is-invalid,
+.form-select.is-invalid,
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+  border-color: var(--rose) !important;
+}
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus,
+.was-validated .form-control:invalid:focus,
+.was-validated .form-select:invalid:focus {
+  border-color: var(--rose) !important;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.28) !important;
+}
+.invalid-feedback {
+  color: #fb7185 !important;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-top: 5px;
+}
+.form-control.is-valid,
+.form-select.is-valid,
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+  border-color: var(--emerald) !important;
+}
+.valid-feedback {
+  color: #34d399 !important;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+/* Textarea Actions Toolbar (Rich Text / Upload / Download) */
+span.lead.position-absolute.end-0.me-3 {
+  top: -2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+span.lead.position-absolute.end-0.me-3 a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+span.lead.position-absolute.end-0.me-3 a:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+  transform: translateY(-1px);
 }
 
 /* Buttons */
@@ -423,11 +605,28 @@ h6.text-center.mt-5 {
   font-size: 0.88rem;
   border-radius: var(--radius-sm) !important;
   padding: 8px 18px !important;
-  transition: all 0.2s ease !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #818cf8 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.35) !important;
+}
+.btn:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+.btn:disabled, .btn.disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-primary, button[value="login"], button[value="save"] {
@@ -472,6 +671,26 @@ h6.text-center.mt-5 {
   background: #f43f5e !important;
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
+}
+
+/* Mobile & Accessibility Media Queries */
+@media (max-width: 768px) {
+  .form-control, .form-select, textarea.form-control {
+    font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
+  }
+  .btn {
+    padding: 9px 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
 }
 
 /* Tables & Data Lists */

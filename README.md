@@ -67,8 +67,10 @@ http://localhost:35248/dashboard
 
 ## Observability & Health
 
-- **Health Check (`GET /health`):** JSON endpoint returning service uptime, database health, and channel states. Suitable for Docker and Kubernetes probes.
-- **Prometheus Metrics (`GET /metrics`):** Standard Prometheus metrics scraper exposing request counts, token consumption, latency counters, and active session gauges.
+- **Health Check (`GET /health`):** JSON endpoint returning service uptime, database health, and channel states. Suitable for Docker and Kubernetes probes. Public (no credentials).
+- **Prometheus Metrics (`GET /metrics`):** Standard Prometheus metrics scraper exposing request counts, token consumption, latency counters, and active session gauges. Requires HTTP Basic auth (use `basic_auth` in your Prometheus `scrape_configs`).
+
+> **Authentication:** The dashboard (`/dashboard`, `/api/dashboard/*`) and `/metrics` always require HTTP Basic credentials of a Tibula admin user (the one created with `--db-setup`). When `userRestricted` is enabled, `aiUsers` credentials are accepted as well. After 10 failed attempts per minute, the IP is temporarily blocked (HTTP 429).
 
 ---
 

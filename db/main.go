@@ -14,9 +14,32 @@ func UserGet(uuid string) (tibulaTypeRow, error) {
 		uuid, tibulaNow())
 }
 
+// UserGetWithPassword returns the aiUsers row matching uuid and password.
+// Passwords are stored as bcrypt (salted) hashes, so they must be verified
+// with PasswordCheck instead of comparing a freshly generated hash in SQL.
 func UserGetWithPassword(uuid, password string) (tibulaTypeRow, error) {
-	return tibulaRow(`SELECT * FROM aiUsers WHERE uuid = ? AND password =? AND (expiration IS NULL OR expiration = "" OR expiration > ?) LIMIT 1`,
-		uuid, tibulaPassword(password), tibulaNow())
+	row, err := tibulaRow(`SELECT * FROM aiUsers WHERE uuid = ? AND (expiration IS NULL OR expiration = "" OR expiration > ?) LIMIT 1`,
+		uuid, tibulaNow())
+	if err != nil {
+		return nil, err
+	}
+	if len(row) == 0 || row["password"] == "" || !tibulaSession.PasswordCheck(password, row["password"]) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+	return row, nil
+}
+
+// AdminCheck verifies credentials against the Tibula administration users (ejaUsers).
+func AdminCheck(username, password string) bool {
+	if username == "" || password == "" {
+		return false
+	}
+	db, err := tibulaConnection()
+	if err != nil {
+		return false
+	}
+	defer db.Close()
+	return len(db.UserGetAllByUserAndPass(username, password)) > 0
 }
 
 var userUpdatableFields = map[string]bool{

@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +19,10 @@ import (
 	"github.com/eja/pbx/pbx"
 	"github.com/eja/pbx/sys"
 )
+
+// sseChunkRegex splits text into word+trailing whitespace chunks (or leading
+// whitespace runs); joining all matches reproduces the original text exactly.
+var sseChunkRegex = regexp.MustCompile(`\S+\s*|\s+`)
 
 func generateChatID() string {
 	b := make([]byte, 16)
@@ -206,21 +211,30 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 		w.Write(audioData)
 	} else {
 		if r.URL.Query().Get("stream") == "true" || strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
-			w.Header().Set("Content-Type", "text/event-stream")
-			w.Header().Set("Cache-Control", "no-cache")
-			w.Header().Set("Connection", "keep-alive")
 			if flusher, ok := w.(http.Flusher); ok {
-				words := strings.Fields(llmResponse)
-				for i, word := range words {
-					isDone := i == len(words)-1
-					data, _ := json.Marshal(map[string]any{
-						"delta": word + " ",
-						"done":  isDone,
-					})
-					fmt.Fprintf(w, "data: %s\n\n", string(data))
+				w.Header().Set("Content-Type", "text/event-stream")
+				w.Header().Set("Cache-Control", "no-cache")
+				w.Header().Set("Connection", "keep-alive")
+
+				// The full reply is needed before sending (tags must be stripped and
+				// tool calls resolved), so this progressively reveals the final text.
+				// Chunks keep their whitespace so Markdown formatting survives.
+				chunks := sseChunkRegex.FindAllString(llmResponse, -1)
+				send := func(delta string, done bool) {
+					data, _ := json.Marshal(map[string]any{"delta": delta, "done": done})
+					fmt.Fprintf(w, "data: %s\n\n", data)
 					flusher.Flush()
+				}
+				for _, chunk := range chunks {
+					select {
+					case <-r.Context().Done():
+						return
+					default:
+					}
+					send(chunk, false)
 					time.Sleep(20 * time.Millisecond)
 				}
+				send("", true)
 				return
 			}
 		}

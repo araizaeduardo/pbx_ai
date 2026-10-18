@@ -51,6 +51,16 @@ func (rl *rateLimiter) allow(key string) bool {
 	return true
 }
 
+// blocked reports whether key has exhausted its budget in the current window,
+// without consuming a slot.
+func (rl *rateLimiter) blocked(key string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	b, ok := rl.buckets[key]
+	return ok && time.Since(b.lastSeen) <= rl.window && b.count >= rl.limit
+}
+
 func (rl *rateLimiter) cleanupLoop() {
 	ticker := time.NewTicker(rl.window * 2)
 	for range ticker.C {

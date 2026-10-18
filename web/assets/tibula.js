@@ -1,6 +1,11 @@
 // PBX AI Modern Admin Controller & Tibula Script
 // Copyright (C) 2007-2026 by Ubaldo Porcheddu <ubaldo@eja.it> & PBX AI Team
 
+// Enable Bootstrap 5.3 native dark theme across all components & forms
+if (document.documentElement) {
+  document.documentElement.setAttribute('data-bs-theme', 'dark');
+}
+
 function tableRowCheck(obj) {
   var input = obj.querySelector('input');
   if (input) {
