@@ -175,18 +175,23 @@ func metaMediaUpload(fileName string, fileType string) (mediaId string, err erro
 }
 
 func SendText(phone string, text string) error {
-	messageData := map[string]any{
-		"messaging_product": "whatsapp",
-		"preview_url":       false,
-		"recipient_type":    "individual",
-		"to":                phone,
-		"type":              "text",
-		"text": map[string]any{
-			"body": text,
-		},
+	chunks := sys.SplitMessage(text, 4000)
+	for _, chunk := range chunks {
+		messageData := map[string]any{
+			"messaging_product": "whatsapp",
+			"preview_url":       false,
+			"recipient_type":    "individual",
+			"to":                phone,
+			"type":              "text",
+			"text": map[string]any{
+				"body": chunk,
+			},
+		}
+		if err := metaPost(messageData); err != nil {
+			return err
+		}
 	}
-
-	return metaPost(messageData)
+	return nil
 }
 
 func SendStatus(messageId string, status string) error {

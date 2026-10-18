@@ -79,6 +79,16 @@ func newMCPClient(serverURL, token string) (*client.Client, error) {
 	return mcpClient, nil
 }
 
+func invalidateMCPClient(serverURL, token string) {
+	key := serverURL + "|" + token
+	mcpClientMu.Lock()
+	defer mcpClientMu.Unlock()
+	if c, ok := mcpClientCache[key]; ok {
+		_ = c.Close()
+		delete(mcpClientCache, key)
+	}
+}
+
 func fetchMCPTools(serverURL, token string) (map[string]LLMTool, error) {
 	mcpClient, err := getMCPClient(serverURL, token)
 	if err != nil {
@@ -87,7 +97,13 @@ func fetchMCPTools(serverURL, token string) (map[string]LLMTool, error) {
 
 	result, err := mcpClient.ListTools(context.Background(), mcp.ListToolsRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("list MCP tools: %w", err)
+		invalidateMCPClient(serverURL, token)
+		if mcpClient2, err2 := getMCPClient(serverURL, token); err2 == nil {
+			result, err = mcpClient2.ListTools(context.Background(), mcp.ListToolsRequest{})
+		}
+		if err != nil {
+			return nil, fmt.Errorf("list MCP tools: %w", err)
+		}
 	}
 
 	tools := make(map[string]LLMTool)
@@ -125,7 +141,13 @@ func callMCPTool(serverURL, token, toolName, args string) (string, error) {
 
 	result, err := mcpClient.CallTool(context.Background(), req)
 	if err != nil {
-		return "", fmt.Errorf("call MCP tool %s: %w", toolName, err)
+		invalidateMCPClient(serverURL, token)
+		if mcpClient2, err2 := getMCPClient(serverURL, token); err2 == nil {
+			result, err = mcpClient2.CallTool(context.Background(), req)
+		}
+		if err != nil {
+			return "", fmt.Errorf("call MCP tool %s: %w", toolName, err)
+		}
 	}
 	if result.IsError {
 		var sb strings.Builder
@@ -157,7 +179,13 @@ func fetchMCPPrompts(serverURL, token string) (map[string]string, error) {
 
 	result, err := mcpClient.ListPrompts(context.Background(), mcp.ListPromptsRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("list MCP prompts: %w", err)
+		invalidateMCPClient(serverURL, token)
+		if mcpClient2, err2 := getMCPClient(serverURL, token); err2 == nil {
+			result, err = mcpClient2.ListPrompts(context.Background(), mcp.ListPromptsRequest{})
+		}
+		if err != nil {
+			return nil, fmt.Errorf("list MCP prompts: %w", err)
+		}
 	}
 
 	prompts := make(map[string]string)
@@ -179,7 +207,13 @@ func getMCPPrompt(serverURL, token, promptName string, args map[string]string) (
 
 	result, err := mcpClient.GetPrompt(context.Background(), req)
 	if err != nil {
-		return "", fmt.Errorf("get MCP prompt %s: %w", promptName, err)
+		invalidateMCPClient(serverURL, token)
+		if mcpClient2, err2 := getMCPClient(serverURL, token); err2 == nil {
+			result, err = mcpClient2.GetPrompt(context.Background(), req)
+		}
+		if err != nil {
+			return "", fmt.Errorf("get MCP prompt %s: %w", promptName, err)
+		}
 	}
 
 	var sb strings.Builder

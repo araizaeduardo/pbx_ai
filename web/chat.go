@@ -205,6 +205,25 @@ func chatRouter(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "audio/wav")
 		w.Write(audioData)
 	} else {
+		if r.URL.Query().Get("stream") == "true" || strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Header().Set("Connection", "keep-alive")
+			if flusher, ok := w.(http.Flusher); ok {
+				words := strings.Fields(llmResponse)
+				for i, word := range words {
+					isDone := i == len(words)-1
+					data, _ := json.Marshal(map[string]any{
+						"delta": word + " ",
+						"done":  isDone,
+					})
+					fmt.Fprintf(w, "data: %s\n\n", string(data))
+					flusher.Flush()
+					time.Sleep(20 * time.Millisecond)
+				}
+				return
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"text": llmResponse})
 	}

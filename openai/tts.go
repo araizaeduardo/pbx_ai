@@ -30,6 +30,9 @@ func TTS(filePath string, text string, languageCode string) error {
 	const audioType = "wav"
 	aiSettings := db.Settings()
 	model := aiSettings["ttsModel"]
+	if langModel := aiSettings["ttsModel_"+languageCode]; langModel != "" {
+		model = langModel
+	}
 	if model == "" {
 		model = ttsModel
 	}
@@ -45,6 +48,9 @@ func TTS(filePath string, text string, languageCode string) error {
 		url = ttsUrl
 	}
 	voice := aiSettings["ttsVoice"]
+	if langVoice := aiSettings["ttsVoice_"+languageCode]; langVoice != "" {
+		voice = langVoice
+	}
 	if voice == "" {
 		voice = ttsVoice
 	}

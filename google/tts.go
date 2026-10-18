@@ -35,6 +35,9 @@ func TTS(filePath string, text string, languageCode string) error {
 		apiKey = sys.Options.AiToken
 	}
 	gender := aiSettings["ttsGender"]
+	if langGender := aiSettings["ttsGender_"+languageCode]; langGender != "" {
+		gender = langGender
+	}
 	if gender == "" {
 		gender = "FEMALE"
 	}

@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -188,16 +189,48 @@ func LLMWithDetails(messages []sys.TypeChatMessage, system string, tools map[str
 			return details, fmt.Errorf("error marshaling JSON: %v", err)
 		}
 
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-		if err != nil {
-			return details, fmt.Errorf("error creating request: %v", err)
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
+		const maxHttpRetries = 3
+		var resp *http.Response
+		var lastErr error
+		for attempt := range maxHttpRetries {
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+			if err != nil {
+				return details, fmt.Errorf("error creating request: %v", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+token)
 
-		resp, err := llmHttpClient.Do(req)
-		if err != nil {
-			return details, fmt.Errorf("error making request: %v", err)
+			resp, err = llmHttpClient.Do(req)
+			if err != nil {
+				lastErr = err
+				backoff := time.Duration(1<<attempt) * 500 * time.Millisecond
+				slog.Warn("LLM network error, retrying", "attempt", attempt+1, "error", err, "backoff", backoff)
+				time.Sleep(backoff)
+				continue
+			}
+
+			if resp.StatusCode == http.StatusTooManyRequests || (resp.StatusCode >= 500 && resp.StatusCode <= 599) {
+				body, _ := io.ReadAll(resp.Body)
+				resp.Body.Close()
+				lastErr = fmt.Errorf("LLM HTTP %d: %s", resp.StatusCode, string(body))
+
+				backoff := time.Duration(1<<attempt) * 500 * time.Millisecond
+				if ra := resp.Header.Get("Retry-After"); ra != "" {
+					if secs, e := strconv.Atoi(ra); e == nil && secs > 0 {
+						backoff = time.Duration(secs) * time.Second
+					}
+				}
+				slog.Warn("LLM temporary error, retrying with backoff", "status", resp.StatusCode, "attempt", attempt+1, "backoff", backoff)
+				time.Sleep(backoff)
+				continue
+			}
+
+			lastErr = nil
+			break
+		}
+
+		if lastErr != nil {
+			return details, fmt.Errorf("LLM request failed after retries: %w", lastErr)
 		}
 
 		if resp.StatusCode != http.StatusOK {

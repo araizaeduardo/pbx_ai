@@ -58,15 +58,15 @@ Prioridad: 🔴 crítica · 🟠 alta · 🟡 media · 🟢 baja
 
 ## Fase 6 — Mejoras funcionales
 
-- [ ] 🟠 **T-37** Persistir historial de conversaciones en BD (sobrevive a reinicios)
-- [ ] 🟡 **T-38** Reintentos con backoff ante 429/5xx del LLM
-- [ ] 🟡 **T-39** Streaming de respuestas del LLM en el chat web (SSE)
-- [ ] 🟡 **T-40** Soporte de imágenes/documentos entrantes en WhatsApp y Telegram
-- [ ] 🟡 **T-41** Compartir caché de clientes y herramientas MCP con reconexión automática
-- [ ] 🟡 **T-42** Dividir mensajes largos según límite de Telegram (4096) y WhatsApp
-- [ ] 🟢 **T-43** Formato Markdown/HTML en respuestas de Telegram
-- [ ] 🟢 **T-44** Permitir seleccionar voz y modelo TTS por idioma o usuario
-- [ ] 🟢 **T-45** Soporte de otros proveedores ASR/TTS (ElevenLabs, Azure, Deepgram)
+- [x] 🟠 **T-37** Persistir historial de conversaciones en BD (sobrevive a reinicios)
+- [x] 🟡 **T-38** Reintentos con backoff ante 429/5xx del LLM
+- [x] 🟡 **T-39** Streaming de respuestas del LLM en el chat web (SSE)
+- [x] 🟡 **T-40** Soporte de imágenes/documentos entrantes en WhatsApp y Telegram
+- [x] 🟡 **T-41** Compartir caché de clientes y herramientas MCP con reconexión automática
+- [x] 🟡 **T-42** Dividir mensajes largos según límite de Telegram (4096) y WhatsApp
+- [x] 🟢 **T-43** Formato Markdown/HTML en respuestas de Telegram
+- [x] 🟢 **T-44** Permitir seleccionar voz y modelo TTS por idioma o usuario
+- [x] 🟢 **T-45** Soporte de otros proveedores ASR/TTS (ElevenLabs, Azure, Deepgram)
 
 ## Fase 7 — Dashboard y observabilidad
 

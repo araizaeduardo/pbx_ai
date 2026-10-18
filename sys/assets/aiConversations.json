@@ -1,0 +1,98 @@
+{
+  "type": "module",
+  "module": {
+    "parentName": "ai",
+    "power": 90,
+    "searchLimit": 0,
+    "sqlCreated": 1
+  },
+  "command": [
+    "logout",
+    "delete",
+    "search",
+    "list"
+  ],
+  "field": [
+    {
+      "value": "",
+      "powerEdit": 10,
+      "powerList": 10,
+      "type": "text",
+      "translate": 0,
+      "powerSearch": 10,
+      "name": "userId",
+      "sizeSearch": 0,
+      "sizeList": 0,
+      "sizeEdit": 0
+    },
+    {
+      "value": "",
+      "powerEdit": 10,
+      "powerList": 10,
+      "type": "text",
+      "translate": 0,
+      "powerSearch": 10,
+      "name": "role",
+      "sizeSearch": 0,
+      "sizeList": 0,
+      "sizeEdit": 0
+    },
+    {
+      "value": "",
+      "powerEdit": 40,
+      "powerList": 40,
+      "type": "textArea",
+      "translate": 0,
+      "powerSearch": 10,
+      "name": "content",
+      "sizeSearch": 0,
+      "sizeList": 0,
+      "sizeEdit": 0
+    },
+    {
+      "value": "",
+      "powerEdit": 0,
+      "powerList": 1,
+      "type": "datetime",
+      "translate": 0,
+      "powerSearch": 1,
+      "name": "ejaLog",
+      "sizeSearch": 0,
+      "sizeList": 0,
+      "sizeEdit": 0
+    }
+  ],
+  "translation": [
+    {
+      "ejaLanguage": "en",
+      "word": "aiConversations",
+      "translation": "Conversations"
+    },
+    {
+      "ejaLanguage": "en",
+      "ejaModuleName": "aiConversations",
+      "word": "userId",
+      "translation": "User ID"
+    },
+    {
+      "ejaLanguage": "en",
+      "ejaModuleName": "aiConversations",
+      "word": "role",
+      "translation": "Role"
+    },
+    {
+      "ejaLanguage": "en",
+      "ejaModuleName": "aiConversations",
+      "word": "content",
+      "translation": "Content"
+    },
+    {
+      "ejaLanguage": "en",
+      "ejaModuleName": "aiConversations",
+      "word": "ejaLog",
+      "translation": "Date"
+    }
+  ],
+  "name": "aiConversations",
+  "data": null
+}

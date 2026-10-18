@@ -9,6 +9,7 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -32,6 +33,15 @@ type typeMetaMessage struct {
 					Audio *struct {
 						ID string `json:"id"`
 					} `json:"audio,omitempty"`
+					Image *struct {
+						ID      string `json:"id"`
+						Caption string `json:"caption,omitempty"`
+					} `json:"image,omitempty"`
+					Document *struct {
+						ID       string `json:"id"`
+						Filename string `json:"filename,omitempty"`
+						Caption  string `json:"caption,omitempty"`
+					} `json:"document,omitempty"`
 					ID string `json:"id"`
 				} `json:"messages"`
 			} `json:"value"`
@@ -162,6 +172,32 @@ func metaRouter(w http.ResponseWriter, r *http.Request) {
 									slog.Warn("Meta, send text error", "user", userId, "chat", chatId, "error", err)
 								}
 							}
+						} else if message.Image != nil {
+							prompt := message.Image.Caption
+							if prompt == "" {
+								prompt = "Image received."
+							}
+							filePath := fmt.Sprintf("%s/%s.jpg", sys.Options.MediaPath, message.Image.ID)
+							_ = meta.MediaGet(message.Image.ID, filePath)
+							textInput := fmt.Sprintf("[Image attached: %s] %s", message.Image.ID, prompt)
+							response, err := pbx.Text(userId, user["language"], textInput)
+							if err != nil {
+								response = i18n.Translate(user["language"], "error")
+							}
+							_ = meta.SendText(userId, response)
+						} else if message.Document != nil {
+							prompt := message.Document.Caption
+							if prompt == "" {
+								prompt = "Document received."
+							}
+							filePath := fmt.Sprintf("%s/%s_%s", sys.Options.MediaPath, message.Document.ID, message.Document.Filename)
+							_ = meta.MediaGet(message.Document.ID, filePath)
+							textInput := fmt.Sprintf("[Document attached: %s] %s", message.Document.Filename, prompt)
+							response, err := pbx.Text(userId, user["language"], textInput)
+							if err != nil {
+								response = i18n.Translate(user["language"], "error")
+							}
+							_ = meta.SendText(userId, response)
 						}
 					} else {
 						if err := meta.SendText(userId, i18n.Translate("", "user_unknown")); err != nil {

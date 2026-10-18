@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/eja/pbx/db"
+	"github.com/eja/pbx/elevenlabs"
 	"github.com/eja/pbx/google"
 	"github.com/eja/pbx/i18n"
 	"github.com/eja/pbx/openai"
@@ -27,6 +28,10 @@ func TTS(rawText, language, fileAudioOutput string) error {
 	if _, err := os.Stat(ttsCacheFile); err != nil {
 		if aiSettings["ttsProvider"] == "google" {
 			if err = google.TTS(fileAudioOutput, text, i18n.LanguageCodeToLocale(language)); err != nil {
+				return err
+			}
+		} else if aiSettings["ttsProvider"] == "elevenlabs" {
+			if err = elevenlabs.TTS(fileAudioOutput, text, language); err != nil {
 				return err
 			}
 		} else {

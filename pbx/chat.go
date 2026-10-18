@@ -25,33 +25,50 @@ var (
 )
 
 // historyAppend adds a message to the user history (trimmed to maxHistoryMessages)
-// and returns a copy of the resulting history.
+// and returns a copy of the resulting history, persisting it to the database.
 func historyAppend(userId string, msg sys.TypeChatMessage) []sys.TypeChatMessage {
 	historyMu.Lock()
 	defer historyMu.Unlock()
+	if len(history[userId]) == 0 {
+		if dbHist, err := db.ConversationLoad(userId, maxHistoryMessages); err == nil && len(dbHist) > 0 {
+			history[userId] = dbHist
+		}
+	}
 	hist := append(history[userId], msg)
 	if len(hist) > maxHistoryMessages {
 		hist = append([]sys.TypeChatMessage(nil), hist[len(hist)-maxHistoryMessages:]...)
 	}
 	history[userId] = hist
 	historyTime[userId] = time.Now()
+	go func(uid, role, content string) {
+		_ = db.ConversationSave(uid, role, content)
+	}(userId, msg.Role, msg.Content)
 	return append([]sys.TypeChatMessage(nil), hist...)
 }
 
-// historyGet returns a copy of the user history.
+// historyGet returns a copy of the user history, restoring from DB if needed.
 func historyGet(userId string) []sys.TypeChatMessage {
 	historyMu.Lock()
 	defer historyMu.Unlock()
+	if len(history[userId]) == 0 {
+		if dbHist, err := db.ConversationLoad(userId, maxHistoryMessages); err == nil && len(dbHist) > 0 {
+			history[userId] = dbHist
+			historyTime[userId] = time.Now()
+		}
+	}
 	return append([]sys.TypeChatMessage(nil), history[userId]...)
 }
 
-// historyReset removes all the stored state for the user.
+// historyReset removes all the stored state for the user in memory and database.
 func historyReset(userId string) {
 	historyMu.Lock()
 	defer historyMu.Unlock()
 	delete(history, userId)
 	delete(historyTime, userId)
 	delete(historyThread, userId)
+	go func(uid string) {
+		_ = db.ConversationReset(uid)
+	}(userId)
 }
 
 var ChatProcess func(userId, system, message, language string, history []sys.TypeChatMessage, tools map[string]LLMTool) (string, error)

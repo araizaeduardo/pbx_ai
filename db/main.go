@@ -5,6 +5,8 @@ package db
 import (
 	"fmt"
 	"sync"
+
+	"github.com/eja/pbx/sys"
 )
 
 func UserGet(uuid string) (tibulaTypeRow, error) {
@@ -182,6 +184,67 @@ func GetRecentLogs(limit int, channel, search string) (tibulaTypeRows, error) {
 
 	query := fmt.Sprintf("SELECT ejaId, ejaLog, source, message, COALESCE(channel, 'chat') as channel, COALESCE(tokens, 0) as tokens, COALESCE(latency_ms, 0) as latency_ms, COALESCE(model, '') as model, COALESCE(error, '') as error FROM aiLogs WHERE %s ORDER BY ejaId DESC LIMIT %d", whereClause, limit)
 	return tibulaRows(query, args...)
+}
+
+var (
+	migratedAiConversations bool
+	convMigrateMutex        sync.Mutex
+)
+
+func ensureAiConversationsTable() {
+	convMigrateMutex.Lock()
+	defer convMigrateMutex.Unlock()
+	if migratedAiConversations {
+		return
+	}
+	query := `CREATE TABLE IF NOT EXISTS aiConversations (
+		ejaId INTEGER PRIMARY KEY AUTOINCREMENT,
+		ejaOwner INTEGER DEFAULT 1,
+		ejaLog DATETIME,
+		userId TEXT,
+		role TEXT,
+		content TEXT
+	)`
+	_, _ = tibulaRun(query)
+	_, _ = tibulaRun(`CREATE INDEX IF NOT EXISTS idx_aiConversations_user ON aiConversations (userId, ejaId)`)
+	migratedAiConversations = true
+}
+
+func ConversationSave(userId, role, content string) error {
+	ensureAiConversationsTable()
+	_, err := tibulaRun(
+		`INSERT INTO aiConversations (ejaOwner, ejaLog, userId, role, content) VALUES (1,?,?,?,?)`,
+		tibulaNow(), userId, role, content,
+	)
+	return err
+}
+
+func ConversationLoad(userId string, limit int) ([]sys.TypeChatMessage, error) {
+	ensureAiConversationsTable()
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := tibulaRows(
+		`SELECT role, content FROM aiConversations WHERE userId = ? ORDER BY ejaId DESC LIMIT ?`,
+		userId, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]sys.TypeChatMessage, len(rows))
+	for i, r := range rows {
+		result[len(rows)-1-i] = sys.TypeChatMessage{
+			Role:    r["role"],
+			Content: r["content"],
+		}
+	}
+	return result, nil
+}
+
+func ConversationReset(userId string) error {
+	ensureAiConversationsTable()
+	_, err := tibulaRun(`DELETE FROM aiConversations WHERE userId = ?`, userId)
+	return err
 }
 
 func DefaultLanguage() (string, error) {

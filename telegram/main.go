@@ -35,15 +35,33 @@ func settings(item string) string {
 	return value
 }
 
-func SendText(chatId string, text string) error {
+func sendTelegramChunk(chatId, chunk string) error {
 	sendMessageURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", settings("telegramToken"))
 
-	payload := map[string]string{
-		"chat_id": chatId,
-		"text":    text,
+	// Try with Markdown formatting first
+	payloadMarkdown := map[string]string{
+		"chat_id":    chatId,
+		"text":       chunk,
+		"parse_mode": "Markdown",
+	}
+	payloadBytes, err := json.Marshal(payloadMarkdown)
+	if err == nil {
+		resp, err := httpClient.Post(sendMessageURL, "application/json", bytes.NewBuffer(payloadBytes))
+		if err == nil {
+			if resp.StatusCode == http.StatusOK {
+				resp.Body.Close()
+				return nil
+			}
+			resp.Body.Close()
+		}
 	}
 
-	payloadBytes, err := json.Marshal(payload)
+	// Fallback to plain text if Markdown parsing fails or errors
+	payloadPlain := map[string]string{
+		"chat_id": chatId,
+		"text":    chunk,
+	}
+	payloadBytes, err = json.Marshal(payloadPlain)
 	if err != nil {
 		return fmt.Errorf("error encoding payload: %v", err)
 	}
@@ -57,6 +75,16 @@ func SendText(chatId string, text string) error {
 		return fmt.Errorf("telegram sendMessage returned status %d", resp.StatusCode)
 	}
 
+	return nil
+}
+
+func SendText(chatId string, text string) error {
+	chunks := sys.SplitMessage(text, 4000)
+	for _, chunk := range chunks {
+		if err := sendTelegramChunk(chatId, chunk); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

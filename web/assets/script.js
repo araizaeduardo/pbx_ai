@@ -125,13 +125,51 @@ async function sendText() {
     inputText.style.height = '';
     spinner.classList.remove('d-none');
     try {
-        const response = await fetch(window.location.href, {
+        const streamUrl = window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'stream=true';
+        const response = await fetch(streamUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream, application/json'
+            },
             body: JSON.stringify({ text: text })
         });
-        const data = await response.json();
-        appendMessage('bot', 'text', data.text);
+
+        if (response.headers.get('content-type')?.includes('text/event-stream')) {
+            spinner.classList.add('d-none');
+            appendMessage('bot', 'text', '');
+            const botMessages = chatWindow.querySelectorAll('.card-body');
+            const targetBody = botMessages[botMessages.length - 1];
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const parsed = JSON.parse(line.slice(6));
+                            if (parsed.delta) {
+                                accumulatedText += parsed.delta;
+                                targetBody.innerHTML = DOMPurify.sanitize(marked.parse(accumulatedText));
+                                chatWindow.scrollTop = chatWindow.scrollHeight;
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+        } else {
+            const data = await response.json();
+            appendMessage('bot', 'text', data.text);
+        }
     } catch (err) {
         appendMessage('bot', 'text', '<span class="text-danger fw-bold">&#9888;&#65039; System Error &#9888;&#65039;</span>');
     } finally {

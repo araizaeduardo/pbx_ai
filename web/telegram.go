@@ -25,10 +25,19 @@ type typeTelegramMessage struct {
 		Chat struct {
 			Id int `json:"id"`
 		} `json:"chat"`
-		Text  string `json:"text,omitempty"`
-		Voice struct {
+		Text    string `json:"text,omitempty"`
+		Caption string `json:"caption,omitempty"`
+		Voice   struct {
 			FileId string `json:"file_id"`
 		} `json:"voice"`
+		Photo []struct {
+			FileId string `json:"file_id"`
+		} `json:"photo,omitempty"`
+		Document *struct {
+			FileId   string `json:"file_id"`
+			FileName string `json:"file_name"`
+			MimeType string `json:"mime_type"`
+		} `json:"document,omitempty"`
 		Context struct {
 			Forwarded bool `json:"forwarded"`
 		} `json:"context"`
@@ -127,6 +136,36 @@ func telegramRouter(w http.ResponseWriter, r *http.Request) {
 						slog.Warn("Telegram, process text problem", "user", userId, "chat", chatId, "error", err)
 					}
 				}
+			}
+
+			if len(telegramMessage.Message.Photo) > 0 {
+				photo := telegramMessage.Message.Photo[len(telegramMessage.Message.Photo)-1]
+				prompt := telegramMessage.Message.Caption
+				if prompt == "" {
+					prompt = "Image received."
+				}
+				filePath := fmt.Sprintf("%s/%s.jpg", sys.Options.MediaPath, photo.FileId)
+				_ = telegram.MediaGet(photo.FileId, filePath)
+				textInput := fmt.Sprintf("[Image attached: %s] %s", photo.FileId, prompt)
+				response, err := pbx.Text(userId, user["language"], textInput)
+				if err != nil {
+					response = i18n.Translate(user["language"], "error")
+				}
+				_ = telegram.SendText(chatId, response)
+			} else if telegramMessage.Message.Document != nil && telegramMessage.Message.Document.FileId != "" {
+				doc := telegramMessage.Message.Document
+				prompt := telegramMessage.Message.Caption
+				if prompt == "" {
+					prompt = "Document received."
+				}
+				filePath := fmt.Sprintf("%s/%s_%s", sys.Options.MediaPath, doc.FileId, doc.FileName)
+				_ = telegram.MediaGet(doc.FileId, filePath)
+				textInput := fmt.Sprintf("[Document attached: %s] %s", doc.FileName, prompt)
+				response, err := pbx.Text(userId, user["language"], textInput)
+				if err != nil {
+					response = i18n.Translate(user["language"], "error")
+				}
+				_ = telegram.SendText(chatId, response)
 			}
 		} else {
 			if err := telegram.SendText(chatId, i18n.Translate(chatLanguage, "user_unknown")); err != nil {
