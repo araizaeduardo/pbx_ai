@@ -6,6 +6,7 @@ let autoRefreshTimer = null;
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initDrawer();
+  initHelpModal();
   initFilters();
 
   loadAllData();
@@ -275,3 +276,118 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+function initHelpModal() {
+  const helpBtn = document.getElementById("btn-help");
+  const backdrop = document.getElementById("help-modal-backdrop");
+  const closeBtn = document.getElementById("help-close-btn");
+  const searchInput = document.getElementById("help-search-input");
+  const tabs = document.querySelectorAll(".help-tab-btn");
+  const sections = document.querySelectorAll(".help-section");
+
+  if (!helpBtn || !backdrop) return;
+
+  helpBtn.addEventListener("click", () => {
+    backdrop.classList.add("active");
+    if (searchInput) searchInput.focus();
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      backdrop.classList.remove("active");
+    });
+  }
+
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) {
+      backdrop.classList.remove("active");
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && backdrop.classList.contains("active")) {
+      backdrop.classList.remove("active");
+    }
+  });
+
+  // Help tab navigation
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const targetId = tab.getAttribute("data-help-tab");
+      sections.forEach(sec => {
+        sec.classList.remove("active");
+        if (sec.id === targetId) {
+          sec.classList.add("active");
+        }
+      });
+
+      // Scroll body back to top on tab change
+      const helpBody = document.getElementById("help-body");
+      if (helpBody) helpBody.scrollTop = 0;
+    });
+  });
+
+  // Live search in help modal
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) {
+        // Restore current tab
+        const activeTab = document.querySelector(".help-tab-btn.active");
+        const targetId = activeTab ? activeTab.getAttribute("data-help-tab") : "help-intro";
+        sections.forEach(sec => {
+          sec.classList.toggle("active", sec.id === targetId);
+          sec.querySelectorAll(".help-card, .code-container, tr").forEach(el => el.style.display = "");
+        });
+        return;
+      }
+
+      // In search mode, show all sections that have matching text
+      sections.forEach(sec => {
+        let hasMatch = false;
+        const elements = sec.querySelectorAll(".help-card, .code-container, tr, p");
+        elements.forEach(el => {
+          const match = el.textContent.toLowerCase().includes(q);
+          el.style.display = match ? "" : "none";
+          if (match) hasMatch = true;
+        });
+
+        sec.classList.toggle("active", hasMatch);
+      });
+    });
+  }
+}
+
+// Global copy-to-clipboard for code blocks
+window.copyCode = function(button) {
+  const container = button.closest(".code-container");
+  if (!container) return;
+  const codeEl = container.querySelector("pre code");
+  if (!codeEl) return;
+
+  const text = codeEl.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = button.textContent;
+    button.textContent = "¡Copiado! ✓";
+    button.style.background = "#10b981";
+    button.style.color = "#ffffff";
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.style.background = "";
+      button.style.color = "";
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    button.textContent = "¡Copiado! ✓";
+    setTimeout(() => { button.textContent = "Copiar"; }, 2000);
+  });
+};

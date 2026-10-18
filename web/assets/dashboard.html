@@ -36,6 +36,15 @@
         <span id="refresh-label">Refresh</span>
       </button>
 
+      <button class="btn btn-help" id="btn-help" title="Guía y Ayuda Completa de PBX AI">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>Ayuda</span>
+      </button>
+
       <a href="/" class="btn" title="Open Admin Panel">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -339,6 +348,404 @@
       </div>
       <div class="chat-bubble-container" id="drawer-bubbles">
         <!-- Message bubbles populated via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Center Modal -->
+  <div class="help-modal-backdrop" id="help-modal-backdrop">
+    <div class="help-modal">
+      
+      <!-- Help Header -->
+      <div class="help-header">
+        <div class="help-title-group">
+          <div class="help-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div>
+            <h2>Centro de Ayuda y Guía Completa PBX AI</h2>
+            <p>Documentación técnica, integración Asterisk FastAGI, configuración de LLMs y resolución de dudas.</p>
+          </div>
+        </div>
+
+        <div class="help-header-actions">
+          <input type="text" id="help-search-input" class="help-search-input" placeholder="Buscar en la ayuda (ej. asterisk, curl, llm)..." />
+          <button class="help-close-btn" id="help-close-btn" title="Cerrar ayuda">&times;</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="help-nav-tabs">
+        <button class="help-tab-btn active" data-help-tab="help-intro">
+          <span>🚀 Inicio Rápido</span>
+        </button>
+        <button class="help-tab-btn" data-help-tab="help-asterisk">
+          <span>📞 Asterisk & FastAGI</span>
+        </button>
+        <button class="help-tab-btn" data-help-tab="help-config">
+          <span>⚙️ Configuración & Flags</span>
+        </button>
+        <button class="help-tab-btn" data-help-tab="help-api">
+          <span>🌐 APIs & Webhooks</span>
+        </button>
+        <button class="help-tab-btn" data-help-tab="help-llm">
+          <span>🧠 Modelos LLM & Voz</span>
+        </button>
+        <button class="help-tab-btn" data-help-tab="help-faq">
+          <span>🛠️ FAQ & Solución de Problemas</span>
+        </button>
+      </nav>
+
+      <!-- Scrollable Body with Tab Content -->
+      <div class="help-body" id="help-body">
+
+        <!-- Tab 1: Inicio Rápido -->
+        <section class="help-section active" id="help-intro">
+          <h3 class="help-h3">
+            <span>🚀 Visión General y Arquitectura</span>
+          </h3>
+          <p class="help-desc">
+            <strong>PBX AI</strong> es una plataforma de telefonía y mensajería impulsada por Inteligencia Artificial que conecta centrales telefónicas Asterisk (mediante FastAGI), interfaces de chat web, WhatsApp y Telegram con modelos de lenguaje de última generación y motores de síntesis de voz (TTS) y reconocimiento de voz (ASR).
+          </p>
+
+          <div class="help-grid-2">
+            <div class="help-card">
+              <div class="help-card-title">
+                <span class="help-pill help-pill-indigo">FastAGI</span>
+                <span>Telefonía Asterisk</span>
+              </div>
+              <p class="help-card-p">Escucha en el puerto TCP <code>4573</code>. Contesta llamadas, reproduce audio en tiempo real y transcribe la voz del interlocutor para interactuar con el LLM.</p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">
+                <span class="help-pill help-pill-emerald">SSE & REST</span>
+                <span>Web Chat & Streaming</span>
+              </div>
+              <p class="help-card-p">Disponible en <code>/chat</code> con respuestas fluidas transmitidas token por token mediante Server-Sent Events (SSE) y soporte de audio VAD en el navegador.</p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">
+                <span class="help-pill help-pill-amber">Multi-LLM</span>
+                <span>Conectores de IA</span>
+              </div>
+              <p class="help-card-p">Compatible con cualquier API estándar OpenAI (OpenAI GPT-4o, Anthropic Claude vía proxy, Ollama en local, Groq de ultra baja latencia, DeepSeek).</p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">
+                <span class="help-pill help-pill-indigo">Multi-TTS</span>
+                <span>Síntesis de Voz</span>
+              </div>
+              <p class="help-card-p">Soporte nativo para <strong>Google Translate TTS</strong>, <strong>ElevenLabs</strong> (voces hiperrealistas) y <strong>OpenAI TTS</strong> con almacenamiento en caché inteligente.</p>
+            </div>
+          </div>
+
+          <h3 class="help-h3">🔗 Enlaces Rápidos del Sistema</h3>
+          <div class="help-grid-2">
+            <div class="help-card" style="cursor: pointer;" onclick="window.open('/', '_blank')">
+              <div class="help-card-title">⚙️ Menú de Configuración Admin</div>
+              <p class="help-card-p">Edita tokens, prompts, usuarios autorizados, cuentas SIP y ajustes generales en la raíz <code>/</code> (usuario: <code>admin</code>).</p>
+            </div>
+            <div class="help-card" style="cursor: pointer;" onclick="window.open('/chat', '_blank')">
+              <div class="help-card-title">💬 Asistente Web Chat</div>
+              <p class="help-card-p">Cliente web interactivo en <code>/chat</code> con soporte de texto, adjuntos y modo de llamada de voz.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 2: Asterisk & FastAGI -->
+        <section class="help-section" id="help-asterisk">
+          <h3 class="help-h3">📞 Conexión con Asterisk (FastAGI)</h3>
+          <p class="help-desc">
+            PBX AI se comunica con Asterisk a través de <strong>FastAGI</strong> en el puerto TCP <code>4573</code>. Asterisk delega el control de la llamada a PBX AI, quien transcribe el audio del llamante con ASR, consulta al modelo LLM y sintetiza la respuesta con TTS directamente hacia el canal de voz.
+          </p>
+
+          <h3 class="help-h3">📄 Ejemplo 1: Dialplan Directo (extensions.conf)</h3>
+          <p class="help-desc">Agrega esta extensión a tu archivo <code>/etc/asterisk/extensions.conf</code> para que cualquier llamada a la extensión 900 sea atendida por el bot de IA:</p>
+
+          <div class="code-container">
+            <div class="code-header">
+              <span>/etc/asterisk/extensions.conf</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre><code>[from-internal]
+; Extensión 900: Asistente Telefónico PBX AI
+exten => 900,1,NoOp(--- Llamada entrante a PBX AI Assistant ---)
+ same => n,Answer()
+ same => n,Wait(1)
+ same => n,AGI(agi://127.0.0.1:4573)
+ same => n,Hangup()</code></pre>
+          </div>
+
+          <h3 class="help-h3">📄 Ejemplo 2: Menú IVR con Opción DTMF (*)</h3>
+          <p class="help-desc">Permite a los usuarios marcar <code>*</code> en cualquier momento para hablar con el agente de IA:</p>
+
+          <div class="code-container">
+            <div class="code-header">
+              <span>IVR con DTMF</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre><code>[main-menu]
+exten => s,1,Answer()
+ same => n,Background(custom/welcome-menu)
+ same => n,WaitExten(5)
+
+; Si presiona * o dice 'agente', transferir a PBX AI
+exten => *,1,NoOp(--- Transferencia a PBX AI ---)
+ same => n,AGI(agi://127.0.0.1:4573)
+ same => n,Hangup()</code></pre>
+          </div>
+
+          <h3 class="help-h3">⚙️ Requisitos de Conversión de Audio</h3>
+          <p class="help-desc">
+            Asterisk requiere audio a <strong>8000 Hz, mono, PCM de 16 bits</strong> (.wav / .sln). PBX AI utiliza <code>ffmpeg</code> y <code>sox</code> en el servidor para realizar las conversiones automáticamente en milisegundos.
+          </p>
+        </section>
+
+        <!-- Tab 3: Configuración & Flags -->
+        <section class="help-section" id="help-config">
+          <h3 class="help-h3">⚙️ Referencia de Flags de Línea de Comandos</h3>
+          <p class="help-desc">Puedes arrancar PBX AI con las siguientes opciones en terminal o configurarlas en <code>pbx.json</code>:</p>
+
+          <table class="help-table">
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Tipo</th>
+                <th>Defecto</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--start</code></td>
+                <td><span class="help-pill help-pill-indigo">bool</span></td>
+                <td><code>false</code></td>
+                <td>Inicia el servidor web, el servicio AGI y los listeners de webhooks.</td>
+              </tr>
+              <tr>
+                <td><code>--db-setup</code></td>
+                <td><span class="help-pill help-pill-indigo">bool</span></td>
+                <td><code>false</code></td>
+                <td>Inicializa las tablas y datos por defecto en SQLite o MySQL.</td>
+              </tr>
+              <tr>
+                <td><code>--wizard</code></td>
+                <td><span class="help-pill help-pill-indigo">bool</span></td>
+                <td><code>false</code></td>
+                <td>Asistente interactivo por consola para configurar <code>pbx.json</code>.</td>
+              </tr>
+              <tr>
+                <td><code>--chat</code></td>
+                <td><span class="help-pill help-pill-emerald">bool</span></td>
+                <td><code>false</code></td>
+                <td>Habilita la interfaz web de chat en <code>/chat</code> y el dashboard en <code>/dashboard</code>.</td>
+              </tr>
+              <tr>
+                <td><code>--web-port</code></td>
+                <td><span class="help-pill help-pill-amber">int</span></td>
+                <td><code>35248</code></td>
+                <td>Puerto HTTP para el Dashboard, Chat, Métricas Prometheus y APIs.</td>
+              </tr>
+              <tr>
+                <td><code>--asterisk</code></td>
+                <td><span class="help-pill help-pill-emerald">bool</span></td>
+                <td><code>false</code></td>
+                <td>Activa el servidor FastAGI para atender llamadas de Asterisk.</td>
+              </tr>
+              <tr>
+                <td><code>--asterisk-agi</code></td>
+                <td><span class="help-pill help-pill-amber">string</span></td>
+                <td><code>127.0.0.1:4573</code></td>
+                <td>Dirección y puerto TCP donde escuchará el servidor FastAGI.</td>
+              </tr>
+              <tr>
+                <td><code>--ai-token</code></td>
+                <td><span class="help-pill help-pill-indigo">string</span></td>
+                <td><code>""</code></td>
+                <td>API Key del proveedor LLM (OpenAI, Groq, OpenRouter).</td>
+              </tr>
+              <tr>
+                <td><code>--llm-url</code></td>
+                <td><span class="help-pill help-pill-indigo">string</span></td>
+                <td><code>""</code></td>
+                <td>URL base del endpoint OpenAI-compatible (ej. <code>http://localhost:11434/v1</code>).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 class="help-h3">💾 Parámetros en Base de Datos (Tabla <code>aiSettings</code>)</h3>
+          <p class="help-desc">Puedes modificar estos valores en vivo sin reiniciar el servidor desde el Menú de Administración (<code>/</code>):</p>
+          <ul style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.8; margin-left: 20px;">
+            <li><strong>llm_url:</strong> Endpoint de chat completions compatible con OpenAI.</li>
+            <li><strong>ai_token:</strong> Clave de acceso a la API del modelo de IA.</li>
+            <li><strong>model:</strong> Nombre del modelo (ej. <code>gpt-4o-mini</code>, <code>llama-3.3-70b-versatile</code>).</li>
+            <li><strong>asr:</strong> Proveedor de reconocimiento de voz (<code>google</code>, <code>openai</code>).</li>
+            <li><strong>tts:</strong> Proveedor de voz sintetizada (<code>google</code>, <code>openai</code>, <code>elevenlabs</code>).</li>
+            <li><strong>timezone:</strong> Zona horaria local para marcas de tiempo (ej. <code>America/Mexico_City</code>).</li>
+          </ul>
+        </section>
+
+        <!-- Tab 4: APIs & Webhooks -->
+        <section class="help-section" id="help-api">
+          <h3 class="help-h3">🌐 Endpoints HTTP Disponibles</h3>
+          <p class="help-desc">PBX AI expone endpoints REST, Server-Sent Events (SSE) y webhooks seguros:</p>
+
+          <table class="help-table">
+            <thead>
+              <tr>
+                <th>Ruta</th>
+                <th>Método</th>
+                <th>Propósito</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/dashboard</code></td>
+                <td><span class="help-pill help-pill-indigo">GET</span></td>
+                <td>Panel de operaciones, analítica en vivo y visor de diálogos.</td>
+              </tr>
+              <tr>
+                <td><code>/chat</code></td>
+                <td><span class="help-pill help-pill-indigo">GET/POST</span></td>
+                <td>Frontend web de chat y endpoint de mensajería (soporta <code>?stream=true</code>).</td>
+              </tr>
+              <tr>
+                <td><code>/health</code></td>
+                <td><span class="help-pill help-pill-emerald">GET</span></td>
+                <td>Probe de estado y salud del sistema (HTTP 200 con estado de DB y memoria).</td>
+              </tr>
+              <tr>
+                <td><code>/metrics</code></td>
+                <td><span class="help-pill help-pill-emerald">GET</span></td>
+                <td>Métricas en formato Prometheus (peticiones, latencias, tokens, errores).</td>
+              </tr>
+              <tr>
+                <td><code>/api/dashboard/stats</code></td>
+                <td><span class="help-pill help-pill-indigo">GET</span></td>
+                <td>Retorna métricas KPI y desglose por canal en formato JSON.</td>
+              </tr>
+              <tr>
+                <td><code>/api/dashboard/logs</code></td>
+                <td><span class="help-pill help-pill-indigo">GET</span></td>
+                <td>Lista de últimas interacciones con paginación y búsqueda.</td>
+              </tr>
+              <tr>
+                <td><code>/meta</code></td>
+                <td><span class="help-pill help-pill-amber">GET/POST</span></td>
+                <td>Webhook para WhatsApp Cloud API con validación criptográfica HMAC-SHA256.</td>
+              </tr>
+              <tr>
+                <td><code>/tg</code></td>
+                <td><span class="help-pill help-pill-amber">POST</span></td>
+                <td>Webhook para recepción de mensajes de Telegram Bot API.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 class="help-h3">💻 Ejemplo: Consultar el Chat vía cURL</h3>
+          <div class="code-container">
+            <div class="code-header">
+              <span>cURL Stream Example</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre><code>curl -N -X POST "http://localhost:35248/chat?stream=true" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hola, ¿cuál es el estado de las llamadas de hoy?"}'</code></pre>
+          </div>
+        </section>
+
+        <!-- Tab 5: Modelos LLM & Voz -->
+        <section class="help-section" id="help-llm">
+          <h3 class="help-h3">🧠 Proveedores de Inteligencia Artificial & Síntesis</h3>
+          <p class="help-desc">Puedes conectar PBX AI con diversos motores según tus requisitos de costo, privacidad y latencia:</p>
+
+          <div class="help-grid-2">
+            <div class="help-card">
+              <div class="help-card-title">🤖 Ollama (100% Local y Privado)</div>
+              <p class="help-card-p">Ejecuta modelos LLaMA 3, Mistral o DeepSeek en tu propio servidor sin enviar datos a la nube ni costos por token.<br>
+              <strong>URL:</strong> <code>http://localhost:11434/v1</code><br>
+              <strong>Token:</strong> <code>ollama</code></p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">⚡ Groq (Ultra Baja Latencia)</div>
+              <p class="help-card-p">Ideal para llamadas de voz en vivo donde la respuesta debe generarse en menos de 300 ms.<br>
+              <strong>URL:</strong> <code>https://api.groq.com/openai/v1</code><br>
+              <strong>Modelo:</strong> <code>llama-3.3-70b-versatile</code></p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">🎙️ ElevenLabs (Voces Hiperrealistas)</div>
+              <p class="help-card-p">Ofrece la síntesis de voz más natural del mercado con modulación humana y clonación de voz.<br>
+              Configurable en <code>aiSettings</code> con <code>tts: elevenlabs</code>.</p>
+            </div>
+
+            <div class="help-card">
+              <div class="help-card-title">🌐 Google Translate TTS (Sin Costo)</div>
+              <p class="help-card-p">Motor de voz predeterminado, muy ligero y sin necesidad de API key ni registros adicionales.<br>
+              Configurable con <code>tts: google</code>.</p>
+            </div>
+          </div>
+
+          <h3 class="help-h3">📝 Prompts por Canal (Tabla <code>aiPrompts</code>)</h3>
+          <p class="help-desc">
+            PBX AI permite definir instrucciones personalizadas según el medio de contacto:
+          </p>
+          <ul style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.8; margin-left: 20px;">
+            <li><strong>Canal `asterisk`:</strong> Instruye al LLM para que responda con frases breves, directas, sin caracteres especiales ni emojis, ideal para ser leído por teléfono.</li>
+            <li><strong>Canal `chat`:</strong> Permite respuestas más detalladas, listas con viñetas, enlaces y formato Markdown.</li>
+            <li><strong>Canal `all`:</strong> Prompt base del sistema compartido por todos los canales.</li>
+          </ul>
+        </section>
+
+        <!-- Tab 6: FAQ & Solución de Problemas -->
+        <section class="help-section" id="help-faq">
+          <h3 class="help-h3">🛠️ Preguntas Frecuentes & Resolución de Problemas</h3>
+
+          <div class="help-card" style="margin-bottom: 14px;">
+            <div class="help-card-title">❓ Asterisk reporta "AGI Connection Refused" en el puerto 4573</div>
+            <p class="help-card-p">
+              <strong>Causa:</strong> PBX AI no arrancó con el servicio Asterisk habilitado.<br>
+              <strong>Solución:</strong> Asegúrate de incluir la flag <code>--asterisk</code> al iniciar el comando:
+              <br><code>./build/pbx --start --asterisk --asterisk-agi 127.0.0.1:4573</code>
+            </p>
+          </div>
+
+          <div class="help-card" style="margin-bottom: 14px;">
+            <div class="help-card-title">❓ Recibo error "HTTP 429 Too Many Requests"</div>
+            <p class="help-card-p">
+              <strong>Causa:</strong> El limitador de tasa de seguridad de PBX AI restringe peticiones a 60 req/min por dirección IP para prevenir ataques de denegación de servicio y saturación de API.<br>
+              <strong>Solución:</strong> Espera 60 segundos o revisa si algún script automatizado está enviando peticiones en bucle.
+            </p>
+          </div>
+
+          <div class="help-card" style="margin-bottom: 14px;">
+            <div class="help-card-title">❓ Error: "no such table: aiLogs" o faltan datos</div>
+            <p class="help-card-p">
+              <strong>Causa:</strong> La base de datos SQLite o MySQL no ha sido inicializada.<br>
+              <strong>Solución:</strong> Ejecuta el inicializador de base de datos una sola vez:
+              <br><code>./build/pbx --db-setup --db-name pbx.db</code>
+            </p>
+          </div>
+
+          <div class="help-card" style="margin-bottom: 14px;">
+            <div class="help-card-title">❓ El audio de la llamada no se reproduce o se escucha en blanco</div>
+            <p class="help-card-p">
+              <strong>Causa:</strong> Falta la utilidad <code>ffmpeg</code> o <code>sox</code> en el sistema operativo del servidor para convertir archivos de audio temporal.<br>
+              <strong>Solución:</strong> Instálalo mediante el gestor de paquetes de tu sistema:
+              <br>En Debian/Ubuntu: <code>sudo apt update && sudo apt install -y ffmpeg sox libsox-fmt-all</code><br>
+              En macOS: <code>brew install ffmpeg sox</code>
+            </p>
+          </div>
+        </section>
+
       </div>
     </div>
   </div>
