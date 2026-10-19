@@ -124,19 +124,12 @@ func session(conn net.Conn) (err error) {
 	if message, err := pbx.Chat(platform, phone, "/welcome", language); err != nil {
 		return err
 	} else {
-		start := now()
-		talking, dtmf, err = play(conn, reader, phone, message, language, vad, mixMonitorTime)
+		// Welcome message should always play completely without premature VAD interruption
+		_, dtmf, err = play(conn, reader, phone, message, language, false, mixMonitorTime)
 		if err != nil {
 			return err
 		}
-		if vad && talking && (now()-start <= 1) {
-			vad = false
-			slog.Debug("AGI, VAD disabled as line is too noisy")
-			talking, dtmf, err = play(conn, reader, phone, message, language, vad, mixMonitorTime)
-			if err != nil {
-				return err
-			}
-		}
+		talking = false
 	}
 
 	for {
@@ -220,6 +213,9 @@ func session(conn net.Conn) (err error) {
 				_, err = send(conn, reader, "HANGUP")
 				return
 			}
+		} else {
+			// No speech was detected or silence hallucination was filtered out
+			talking = false
 		}
 	}
 }
@@ -255,9 +251,6 @@ func now() int64 {
 func record(conn net.Conn, reader *bufio.Reader, phone, language string, vad, talking bool) (string, error) {
 	fileName := ""
 	silence := 2
-	if vad {
-		silence = 1
-	}
 	if !talking {
 		if _, err := send(conn, reader, `STREAM FILE beep ""`); err != nil {
 			return "", err
@@ -306,7 +299,7 @@ func play(conn net.Conn, reader *bufio.Reader, phone string, message string, lan
 		slog.Debug("AGI play", "input", probeInput)
 		playTimeFile := sys.Float(probeInput["duration"])
 		playTimeStart := time.Now().UnixNano()
-		if msg, err := send(conn, reader, fmt.Sprintf("EXEC BackgroundDetect %s,1,30", asteriskFileName)); err != nil {
+		if msg, err := send(conn, reader, fmt.Sprintf("EXEC BackgroundDetect %s,800,400", asteriskFileName)); err != nil {
 			return false, "", err
 		} else {
 			dtmf = dtmfExtract(msg)

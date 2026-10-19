@@ -4,6 +4,7 @@ package pbx
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/google"
@@ -12,6 +13,24 @@ import (
 	"github.com/eja/pbx/openai"
 	"github.com/eja/pbx/sys"
 )
+
+func cleanWhisperHallucinations(transcript string, duration float64) string {
+	clean := strings.ToLower(strings.TrimSpace(transcript))
+	clean = strings.Trim(clean, ".!,?¡¿\"' ")
+
+	switch clean {
+	case "gracias", "muchas gracias", "gracias por ver", "gracias por ver el video",
+		"gracias por su atención", "gracias por mirar", "subtítulos realizados por la comunidad de amara.org",
+		"subtítulos por la comunidad de amara.org", "subtitulos realizados por la comunidad de amara.org",
+		"thank you", "thank you.", "thank you very much", "thank you for watching", "thanks for watching",
+		"[música]", "(música)", "música", "music", "[music]", "you", "":
+		if duration < 3.0 {
+			slog.Warn("ASR, filtered Whisper silence hallucination", "raw", transcript, "duration", duration)
+			return ""
+		}
+	}
+	return transcript
+}
 
 func ASR(fileAudioInput, language string) (string, error) {
 	aiSettings := db.Settings()
@@ -52,6 +71,10 @@ func ASR(fileAudioInput, language string) (string, error) {
 		}
 	}
 
+	duration := sys.Float(probeInput["duration"])
+	transcript = cleanWhisperHallucinations(transcript, duration)
+
 	slog.Debug("ASR", "language", language, "transcript", transcript)
 	return transcript, nil
 }
+

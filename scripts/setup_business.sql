@@ -69,10 +69,14 @@ PROHIBICIÓN ESTRICTA DE SEGURIDAD: Tienes terminantemente prohibido transferir 
 
 (8, 1, datetime('now'), 'cierre_llamada', 8,
 'DESPEDIDA Y CIERRE:
-Cuando el interlocutor se despida (por ejemplo: "adiós", "muchas gracias", "hasta luego", "eso es todo"), despídete cordialmente deseándole un excelente día y añade obligatoriamente la etiqueta [close] al final de tu respuesta para finalizar la llamada limpiamente.', 1, 'all');
+Cuando el interlocutor se despida explícitamente y dé por terminada la llamada (por ejemplo: "adiós", "hasta luego", "eso es todo por hoy, gracias"), despídete cordialmente deseándole un excelente día y añade obligatoriamente la etiqueta [close] al final de tu respuesta para finalizar la llamada limpiamente. IMPORTANTE: Si el interlocutor solo dice "gracias" al inicio de la llamada o como respuesta breve de cortesía, NO cuelgues ni agregues [close]; pregúntale amablemente en qué le puedes ayudar.', 1, 'all');
 
 -- 3. Actualización de saludos iniciales (/welcome)
 UPDATE aiActions SET response = 'Gracias por llamar a Eduardo Araiza Business IT Support. ¿En qué le podemos ayudar hoy con la tecnología de su negocio?' WHERE action = '/welcome' AND language = 'es' AND platform = 'pbx';
 UPDATE aiActions SET response = 'Thank you for calling Eduardo Araiza Business IT Support. How can we help you today with your business technology?' WHERE action = '/welcome' AND language = 'en' AND platform = 'pbx';
 UPDATE aiActions SET response = '¡Hola! Bienvenido a Eduardo Araiza Business IT Support. Ofrecemos soporte técnico y soluciones de tecnología para hacer su negocio más productivo. ¿En qué podemos ayudarle hoy?' WHERE action = '/welcome' AND language = 'es' AND platform = 'chat';
 UPDATE aiActions SET response = 'Hello! Welcome to Eduardo Araiza Business IT Support. We provide technology solutions to make your business more productive. How can we help you today?' WHERE action = '/welcome' AND language = 'en' AND platform = 'chat';
+
+-- 4. Optimización de telefonía (Desactivar VAD inestable para evitar cortes prematuros en audio)
+UPDATE aiSettings SET asteriskVad = 0;
+
