@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -103,7 +104,7 @@ func session(conn net.Conn) (err error) {
 
 	vad := sys.Number(aiSettings["asteriskVad"]) > 0
 	talking := false
-	monitorFile := fmt.Sprintf("%s/monitor.%s.%s.wav", sys.Options.MediaPath, phone, agi.uniqueId)
+	monitorFile := filepath.Clean(fmt.Sprintf("%s/monitor.%s.%s.wav", sys.Options.MediaPath, phone, agi.uniqueId))
 
 	if agi.extension == "h" {
 		_, err = pbx.Chat(platform, phone, "/hangup "+monitorFile, language)
@@ -178,26 +179,19 @@ func session(conn net.Conn) (err error) {
 						language = ttsLanguage
 					}
 				}
-				if strings.HasPrefix(lower, "sip:") {
+				if strings.HasPrefix(lower, "dial:") || strings.HasPrefix(lower, "transfer:") || strings.HasPrefix(lower, "sip:") {
 					if message != "" {
 						if talking, _, err = play(conn, reader, phone, message, ttsLanguage, vad, mixMonitorTime); err != nil {
 							return
 						}
 					}
 					message = ""
-					if _, err = send(conn, reader, fmt.Sprintf("EXEC DIAL PJSIP/%s", item[4:])); err != nil {
-						return
+					colonIdx := strings.Index(item, ":")
+					dialTarget := strings.TrimSpace(item[colonIdx+1:])
+					if !strings.Contains(dialTarget, "/") {
+						dialTarget = fmt.Sprintf("Local/%s@from-internal", dialTarget)
 					}
-					hangup = true
-				}
-				if strings.HasPrefix(lower, "dial:") {
-					if message != "" {
-						if talking, _, err = play(conn, reader, phone, message, ttsLanguage, vad, mixMonitorTime); err != nil {
-							return
-						}
-					}
-					message = ""
-					if _, err = send(conn, reader, fmt.Sprintf("EXEC DIAL %s", item[5:])); err != nil {
+					if _, err = send(conn, reader, fmt.Sprintf("EXEC DIAL %s", dialTarget)); err != nil {
 						return
 					}
 					hangup = true
@@ -235,7 +229,7 @@ func record(conn net.Conn, reader *bufio.Reader, phone, language string, vad, ta
 		}
 	}
 
-	asteriskFileName := fmt.Sprintf("%s/record.%s.%d", sys.Options.MediaPath, phone, now())
+	asteriskFileName := filepath.Clean(fmt.Sprintf("%s/record.%s.%d", sys.Options.MediaPath, phone, now()))
 	fileName = asteriskFileName + ".wav16"
 
 	if !talking {
@@ -251,8 +245,8 @@ func record(conn net.Conn, reader *bufio.Reader, phone, language string, vad, ta
 }
 
 func play(conn net.Conn, reader *bufio.Reader, phone string, message string, language string, vad bool, mixMonitorTime time.Time) (talking bool, dtmf string, err error) {
-	fileOutputName := fmt.Sprintf("%s/tts.%x.wav", sys.Options.Cache, md5.Sum([]byte(message)))
-	fileOutputTmp := fmt.Sprintf("%s/%s.tts.%d", sys.Options.MediaPath, phone, now())
+	fileOutputName := filepath.Clean(fmt.Sprintf("%s/tts.%x.wav", sys.Options.Cache, md5.Sum([]byte(message))))
+	fileOutputTmp := filepath.Clean(fmt.Sprintf("%s/%s.tts.%d", sys.Options.MediaPath, phone, now()))
 	if _, err = os.Stat(fileOutputName); err != nil {
 		if err = pbx.TTS(message, language, fileOutputTmp); err != nil {
 			return

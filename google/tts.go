@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/sys"
@@ -28,11 +30,101 @@ type TTSRequest struct {
 	} `json:"voice"`
 }
 
+func splitTextForTTS(text string, maxLen int) []string {
+	clean := strings.TrimSpace(text)
+	if len(clean) <= maxLen {
+		return []string{clean}
+	}
+
+	var chunks []string
+	var current strings.Builder
+
+	words := strings.Fields(clean)
+	for _, word := range words {
+		if len(word) > maxLen {
+			if current.Len() > 0 {
+				chunks = append(chunks, strings.TrimSpace(current.String()))
+				current.Reset()
+			}
+			chunks = append(chunks, word)
+			continue
+		}
+
+		if current.Len() > 0 && current.Len()+len(word)+1 > maxLen {
+			chunks = append(chunks, strings.TrimSpace(current.String()))
+			current.Reset()
+		}
+
+		if current.Len() > 0 {
+			current.WriteString(" ")
+		}
+		current.WriteString(word)
+
+		if current.Len() >= maxLen-50 {
+			if strings.HasSuffix(word, ".") || strings.HasSuffix(word, "?") || strings.HasSuffix(word, "!") || strings.HasSuffix(word, ":") || strings.HasSuffix(word, ";") {
+				chunks = append(chunks, strings.TrimSpace(current.String()))
+				current.Reset()
+			}
+		}
+	}
+
+	if current.Len() > 0 {
+		chunks = append(chunks, strings.TrimSpace(current.String()))
+	}
+	return chunks
+}
+
 func TTS(filePath string, text string, languageCode string) error {
 	aiSettings := db.Settings()
 	apiKey := aiSettings["ttsToken"]
 	if apiKey == "" {
 		apiKey = sys.Options.AiToken
+	}
+
+	if apiKey == "" {
+		lang := languageCode
+		if len(lang) > 2 {
+			lang = lang[:2]
+		}
+		if lang == "" {
+			lang = "es"
+		}
+
+		chunks := splitTextForTTS(text, 140)
+		var combinedAudio []byte
+
+		for _, chunk := range chunks {
+			chunk = strings.TrimSpace(chunk)
+			if chunk == "" {
+				continue
+			}
+			reqUrl := fmt.Sprintf("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=%s&q=%s",
+				url.QueryEscape(lang), url.QueryEscape(chunk))
+			req, err := http.NewRequest("GET", reqUrl, nil)
+			if err != nil {
+				return err
+			}
+			req.Header.Set("User-Agent", "Mozilla/5.0")
+			resp, err := httpClient.Do(req)
+			if err != nil {
+				return fmt.Errorf("google translate tts failed: %w", err)
+			}
+			if resp.StatusCode != http.StatusOK {
+				resp.Body.Close()
+				return fmt.Errorf("google translate tts status %d for chunk: %s", resp.StatusCode, chunk)
+			}
+			audioData, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil {
+				return err
+			}
+			combinedAudio = append(combinedAudio, audioData...)
+		}
+
+		if len(combinedAudio) == 0 {
+			return fmt.Errorf("no audio content generated from google translate")
+		}
+		return os.WriteFile(filePath, combinedAudio, 0644)
 	}
 	gender := aiSettings["ttsGender"]
 	if langGender := aiSettings["ttsGender_"+languageCode]; langGender != "" {
