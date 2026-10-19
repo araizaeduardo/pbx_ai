@@ -55,6 +55,35 @@ func SessionCheck(sessionHash string) bool {
 	return len(db.UserGetAllBySession(sessionHash)) > 0
 }
 
+// EnsureAdminPermissions ensures all admin users in ejaUsers have complete access in ejaLinks.
+func EnsureAdminPermissions() {
+	db, err := tibulaConnection()
+	if err != nil {
+		return
+	}
+	defer db.Close()
+
+	rows, err := db.Rows("SELECT ejaId FROM ejaUsers WHERE ejaId > 1")
+	if err != nil {
+		return
+	}
+	for _, r := range rows {
+		uid := r["ejaId"]
+		if uid == "" {
+			continue
+		}
+		val, _ := db.Value("SELECT count(*) FROM ejaLinks WHERE dstModuleId='22' AND dstFieldId=?", uid)
+		if sys.Number(val) == 0 {
+			db.Run(`
+				INSERT INTO ejaLinks (ejaId, ejaOwner, ejaLog, srcModuleId, srcFieldId, dstFieldId, dstModuleId, power)
+				SELECT NULL, 1, datetime('now'), srcModuleId, srcFieldId, ?, '22', power
+				FROM ejaLinks
+				WHERE dstModuleId='22' AND dstFieldId=1
+			`, uid)
+		}
+	}
+}
+
 
 var userUpdatableFields = map[string]bool{
 	"welcome":  true,

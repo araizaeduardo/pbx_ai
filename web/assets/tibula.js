@@ -18,8 +18,8 @@ if (document.documentElement) {
     document.cookie = "ejaSession=" + encodeURIComponent(session) + "; path=/; max-age=604800; SameSite=Lax";
     sessionStorage.removeItem('pbx_login_cleared');
   } else {
-    // If on login page with no session in URL, check if we have a stored session cookie
-    var isLoginPage = document.querySelector('input[name="ejaValues[username]"]') || document.querySelector('button[value="login"]');
+    // Accurately detect Login.html without false positives on modules with username fields
+    var isLoginPage = document.querySelector('button[value="login"]') && !document.querySelector('input[name="ejaModuleId"]');
     if (isLoginPage) {
       var match = document.cookie.match(/(?:^|;\s*)ejaSession=([^;]+)/);
       var cookieSession = match ? decodeURIComponent(match[1]) : '';
@@ -201,9 +201,18 @@ function enhanceNavbar() {
 function initHomeLauncher() {
   var sessionInput = document.querySelector('input[name="ejaSession"]');
   var moduleIdInput = document.querySelector('input[name="ejaModuleId"]');
-  if (!sessionInput || !moduleIdInput) return;
+  if (!moduleIdInput) return;
 
-  var session = sessionInput.value;
+  var session = sessionInput ? sessionInput.value : '';
+  if (!session) {
+    var urlParams = new URLSearchParams(window.location.search);
+    session = urlParams.get('ejaSession') || '';
+  }
+  if (!session) {
+    var match = document.cookie.match(/(?:^|;\s*)ejaSession=([^;]+)/);
+    session = match ? decodeURIComponent(match[1]) : '';
+  }
+
   var moduleId = moduleIdInput.value;
 
   // Only trigger on root/home page (ModuleId 1) when not in a subform

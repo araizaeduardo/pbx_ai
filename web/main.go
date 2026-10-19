@@ -20,6 +20,8 @@ import (
 var embeddedFiles embed.FS
 
 func Router() error {
+	db.EnsureAdminPermissions()
+
 	// Re-route default Core path so we can wrap "/" and attach session cookie if present
 	web.RouterPathCore = "/tibula-core"
 	web.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
