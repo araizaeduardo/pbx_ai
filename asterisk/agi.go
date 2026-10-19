@@ -77,9 +77,15 @@ func session(conn net.Conn) (err error) {
 		language = agi.language
 	}
 
-	if asteriskToken == "" || subtle.ConstantTimeCompare([]byte(agi.token), []byte(asteriskToken)) != 1 {
-		slog.Warn("AGI, wrong authorization token")
-	} else {
+	authorizedToken := true
+	if asteriskToken != "" {
+		if subtle.ConstantTimeCompare([]byte(agi.token), []byte(asteriskToken)) != 1 {
+			authorizedToken = false
+			slog.Warn("AGI, wrong authorization token", "received", agi.token)
+		}
+	}
+
+	if authorizedToken {
 		if sys.Number(aiSettings["userRestricted"]) == 0 {
 			authorized = true
 		} else {
