@@ -53,4 +53,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 # Default execution
 ENTRYPOINT ["/app/pbx"]
-CMD ["--start", "--db-type", "sqlite", "--db-name", "/app/data/pbx.db", "--chat", "--web-port", "35248", "--media-path", "/app/media/", "--cache", "/app/cache/"]
+CMD ["--start", "--db-type", "sqlite", "--db-name", "/app/data/pbx.db", "--asterisk", "--asterisk-agi", "0.0.0.0:4573", "--chat", "--chat-audio", "--web-host", "0.0.0.0", "--web-port", "35248", "--media-path", "/app/media/", "--cache", "/app/cache/"]
+
