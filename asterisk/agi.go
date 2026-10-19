@@ -180,16 +180,27 @@ func session(conn net.Conn) (err error) {
 					}
 				}
 				if strings.HasPrefix(lower, "dial:") || strings.HasPrefix(lower, "transfer:") || strings.HasPrefix(lower, "sip:") {
+					colonIdx := strings.Index(item, ":")
+					dialTarget := strings.TrimSpace(item[colonIdx+1:])
+
+					if !isSafeInternalDestination(dialTarget) {
+						slog.Warn("AGI security: blocked unauthorized external transfer attempt", "attempted", dialTarget, "caller", phone)
+						refusalMsg := "Por políticas de seguridad, solo es posible transferir a extensiones internas de la empresa."
+						if language == "en" {
+							refusalMsg = "For security reasons, calls can only be transferred to internal company extensions."
+						}
+						play(conn, reader, phone, refusalMsg, ttsLanguage, vad, mixMonitorTime)
+						continue
+					}
+
 					if message != "" {
 						if talking, _, err = play(conn, reader, phone, message, ttsLanguage, vad, mixMonitorTime); err != nil {
 							return
 						}
 					}
 					message = ""
-					colonIdx := strings.Index(item, ":")
-					dialTarget := strings.TrimSpace(item[colonIdx+1:])
 					if !strings.Contains(dialTarget, "/") {
-						dialTarget = fmt.Sprintf("Local/%s@from-internal", dialTarget)
+						dialTarget = fmt.Sprintf("Local/%s@from-ai-transfer", dialTarget)
 					}
 					if _, err = send(conn, reader, fmt.Sprintf("EXEC DIAL %s", dialTarget)); err != nil {
 						return
@@ -211,6 +222,30 @@ func session(conn net.Conn) (err error) {
 			}
 		}
 	}
+}
+
+func isSafeInternalDestination(target string) bool {
+	clean := target
+	if idx := strings.Index(clean, "/"); idx != -1 {
+		clean = clean[idx+1:]
+	}
+	if idx := strings.Index(clean, "@"); idx != -1 {
+		clean = clean[:idx]
+	}
+	clean = strings.TrimSpace(clean)
+
+	if len(clean) < 2 || len(clean) > 4 {
+		return false
+	}
+	for _, c := range clean {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	if clean == "911" || clean == "112" || clean == "999" || clean == "000" {
+		return false
+	}
+	return true
 }
 
 func now() int64 {

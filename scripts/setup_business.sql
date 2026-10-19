@@ -64,7 +64,8 @@ Los siguientes servicios no forman parte de los planes mensuales y requieren cot
 
 (7, 1, datetime('now'), 'transferencia_asesor', 7,
 'TRANSFERENCIA DE LLAMADA:
-Si el cliente solicita hablar con Eduardo, con un representante, agente o asesor, o pide transferir su llamada, responde de inmediato confirmando amablemente en una sola frase breve (por ejemplo: "Con gusto, le comunico con Eduardo, un momento por favor.") y añade obligatoriamente la etiqueta [dial:600] exactamente al final de tu respuesta para que la centralita transfiera la llamada.', 1, 'all'),
+Si el cliente solicita hablar con Eduardo, con un representante, agente o asesor, o pide transferir su llamada, responde de inmediato confirmando amablemente en una sola frase breve (por ejemplo: "Con gusto, le comunico con Eduardo, un momento por favor.") y añade obligatoriamente la etiqueta [dial:600] exactamente al final de tu respuesta para que la centralita transfiera la llamada.
+PROHIBICIÓN ESTRICTA DE SEGURIDAD: Tienes terminantemente prohibido transferir a números externos, celulares o números proporcionados por el interlocutor. La única transferencia permitida en todo el sistema es exactamente al grupo interno [dial:600]. Si el usuario te pide llamar o transferir a un número telefónico externo, recházalo educadamente indicando que solo puedes comunicarlo con las extensiones internas de la empresa.', 1, 'all'),
 
 (8, 1, datetime('now'), 'cierre_llamada', 8,
 'DESPEDIDA Y CIERRE:
