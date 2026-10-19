@@ -36,6 +36,13 @@
         <span id="refresh-label">Refresh</span>
       </button>
 
+      <button class="btn btn-guide" id="btn-guide" title="Guía Paso a Paso de Conexión (Web Chat, Asterisk, WhatsApp, Telegram)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>Guía Paso a Paso</span>
+      </button>
+
       <button class="btn btn-help" id="btn-help" title="Guía y Ayuda Completa de PBX AI">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -457,6 +464,14 @@
               <p class="help-card-p">Cliente web interactivo en <code>/chat</code> con soporte de texto, adjuntos y modo de llamada de voz.</p>
             </div>
           </div>
+
+          <div class="guide-callout guide-callout-emerald" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px;" onclick="document.getElementById('help-modal-backdrop').classList.remove('active'); openGuideModal('guide-chat');">
+            <div>
+              <strong style="color: #6ee7b7; font-size: 0.95rem;">🚀 ¿Deseas conectar Web Chat, Asterisk, WhatsApp o Telegram desde 0?</strong>
+              <p style="margin: 2px 0 0; font-size: 0.85rem; color: #cbd5e1;">Abre la <strong>Guía Paso a Paso</strong> con instrucciones de inicio a fin para cada canal.</p>
+            </div>
+            <button class="btn btn-guide" style="pointer-events: none; white-space: nowrap;">Ver Guía →</button>
+          </div>
         </section>
 
         <!-- Tab 2: Asterisk & FastAGI -->
@@ -743,6 +758,626 @@ exten => *,1,NoOp(--- Transferencia a PBX AI ---)
               <br>En Debian/Ubuntu: <code>sudo apt update && sudo apt install -y ffmpeg sox libsox-fmt-all</code><br>
               En macOS: <code>brew install ffmpeg sox</code>
             </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Step-by-Step Connection Guide Modal -->
+  <div class="help-modal-backdrop" id="guide-modal-backdrop">
+    <div class="help-modal">
+      
+      <!-- Guide Header -->
+      <div class="help-header">
+        <div class="help-title-group">
+          <div class="help-icon-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h2>Guía de Conexión e Integración Paso a Paso</h2>
+            <p>Procedimiento completo de inicio a fin para conectar Web Chat, Asterisk PBX, WhatsApp / Meta y Telegram.</p>
+          </div>
+        </div>
+
+        <div class="help-header-actions">
+          <input type="text" id="guide-search-input" class="help-search-input" placeholder="Filtrar pasos (ej. asterisk, meta, token)..." />
+          <button class="help-close-btn" id="guide-close-btn" title="Cerrar guía">&times;</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="help-nav-tabs">
+        <button class="guide-tab-btn active" data-guide-tab="guide-chat">
+          <span>💬 Web Chat</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="guide-asterisk">
+          <span>📞 Asterisk PBX</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="guide-meta">
+          <span>📱 WhatsApp / Meta</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="guide-telegram">
+          <span>✈️ Telegram</span>
+        </button>
+      </nav>
+
+      <!-- Scrollable Guide Body -->
+      <div class="help-body" id="guide-body">
+
+        <!-- ==========================================
+             GUÍA 1: WEB CHAT
+             ========================================== -->
+        <section class="guide-section active" id="guide-chat">
+          <div class="guide-channel-hero">
+            <div class="guide-channel-hero-icon">💬</div>
+            <div class="guide-channel-hero-text">
+              <h4>Asistente Conversacional Web & Widget Embebido</h4>
+              <p>Interfaz interactiva en tiempo real con respuestas transmitidas token por token mediante Server-Sent Events (SSE), entrada de texto, subida de archivos y modo llamada con detección de voz (VAD).</p>
+            </div>
+          </div>
+
+          <!-- Paso 1 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-emerald">1</div>
+              <h4 class="guide-step-title">
+                <span>Habilitar Flags del Servidor Web y Audio</span>
+                <span class="help-pill help-pill-emerald">Arranque</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Para activar el frontend de chat y las capacidades de voz en el navegador, inicia PBX AI con las flags <code>--chat</code> y <code>--chat-audio</code>:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Terminal (Arranque con Web Chat)</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>./build/pbx --start --db-name pbx.db --chat --chat-audio --web-port 35248</code></pre>
+              </div>
+              <p>O defínelo en tu archivo <code>pbx.json</code>:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>pbx.json</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>{
+  "chat": true,
+  "chat_audio": true,
+  "chat_cors": "*",
+  "web_port": 35248
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 2 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-emerald">2</div>
+              <h4 class="guide-step-title">
+                <span>Configurar Motor de Inteligencia Artificial (LLM)</span>
+                <span class="help-pill help-pill-indigo">aiSettings</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Ingresa al <strong>Panel de Control Admin</strong> (<code>http://localhost:35248/</code>) en el módulo <strong>aiSettings</strong> y establece las credenciales del modelo:</p>
+              <ul>
+                <li><strong>LLM URL:</strong> <code>https://api.openai.com/v1/chat/completions</code> (o tu servidor local Ollama: <code>http://localhost:11434/v1</code>).</li>
+                <li><strong>LLM Token:</strong> Tu clave secreta <code>sk-proj-...</code></li>
+                <li><strong>LLM Model:</strong> <code>gpt-4o-mini</code> (óptimo en costo/velocidad), <code>gpt-4o</code> o <code>llama-3.3-70b-versatile</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Paso 3 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-emerald">3</div>
+              <h4 class="guide-step-title">
+                <span>Definir Política de Acceso y Usuarios</span>
+                <span class="help-pill help-pill-amber">Seguridad</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En el módulo <strong>aiSettings</strong> encontrarás el campo <code>userRestricted</code>:</p>
+              <ul>
+                <li><strong>userRestricted = 0 (Desactivado):</strong> Modo público. Cualquier usuario que visite <code>/chat</code> puede conversar libremente sin autenticación.</li>
+                <li><strong>userRestricted = 1 (Activado):</strong> Modo corporativo. Solo usuarios registrados en la tabla <strong>aiUsers</strong> pueden acceder. Cada usuario ingresa mediante su enlace personalizado con token:
+                  <br><code>http://localhost:35248/chat?uuid=1090f87e2d45b8eac88ee44097ef8fc2</code>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Paso 4 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-emerald">4</div>
+              <h4 class="guide-step-title">
+                <span>Incrustar el Widget en tu Sitio Web o Tienda</span>
+                <span class="help-pill help-pill-cyan">HTML & Iframe</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Puedes incrustar el asistente en cualquier página HTML (WordPress, Shopify, Next.js, HTML estático) con este código responsive flotante:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>HTML Widget Snippet</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>&lt;!-- Widget Flotante de PBX AI --&gt;
+&lt;iframe 
+  src="http://localhost:35248/chat" 
+  width="400" 
+  height="600" 
+  style="position: fixed; bottom: 20px; right: 20px; border: none; border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.4); z-index: 9999;"
+  allow="microphone"&gt;
+&lt;/iframe&gt;</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 5 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-emerald">5</div>
+              <h4 class="guide-step-title">
+                <span>Validación y Pruebas en Vivo</span>
+                <span class="help-pill help-pill-emerald">Test</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Abre en tu navegador <a href="/chat" target="_blank" style="color: #6ee7b7; text-decoration: underline;">http://localhost:35248/chat</a>. Escribe un mensaje de prueba o pulsa el icono de micrófono para iniciar una llamada de voz bidireccional.</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Prueba por Terminal vía cURL</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>curl -N -X POST "http://localhost:35248/chat?stream=true" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hola, ¿cómo puedes ayudarme?"}'</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================
+             GUÍA 2: ASTERISK PBX
+             ========================================== -->
+        <section class="guide-section" id="guide-asterisk">
+          <div class="guide-channel-hero">
+            <div class="guide-channel-hero-icon">📞</div>
+            <div class="guide-channel-hero-text">
+              <h4>Telefonía Asterisk PBX & Agente de Voz FastAGI</h4>
+              <p>Conexión de ultra baja latencia con tu central telefónica Asterisk. PBX AI contesta la llamada vía FastAGI, transcribe la voz del llamante en tiempo real con Whisper, consulta al LLM y sintetiza la voz directamente al canal telefónico.</p>
+            </div>
+          </div>
+
+          <!-- Paso 1 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">1</div>
+              <h4 class="guide-step-title">
+                <span>Instalar Dependencias de Conversión de Audio en el Sistema</span>
+                <span class="help-pill help-pill-amber">Servidor</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Asterisk requiere que el audio se transmita a <strong>8000 Hz, Mono, PCM 16-bit</strong> (.wav o .sln). PBX AI realiza esta conversión automáticamente utilizando <code>ffmpeg</code> y <code>sox</code>:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>En Servidor Debian / Ubuntu</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>sudo apt update && sudo apt install -y ffmpeg sox libsox-fmt-all</code></pre>
+              </div>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>En macOS (Homebrew)</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>brew install ffmpeg sox</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 2 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">2</div>
+              <h4 class="guide-step-title">
+                <span>Iniciar PBX AI con el Servicio FastAGI Habilitado</span>
+                <span class="help-pill help-pill-emerald">Puerto 4573</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Inicia PBX AI agregando el flag <code>--asterisk</code> y opcionalmente especificando el puerto de escucha AGI (por defecto <code>127.0.0.1:4573</code>):</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Comando de Ejecución</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>./build/pbx --start --db-name pbx.db --asterisk --asterisk-agi 127.0.0.1:4573</code></pre>
+              </div>
+              <p>O en tu <code>pbx.json</code>:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>pbx.json</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>{
+  "asterisk": true,
+  "asterisk_agi": "127.0.0.1:4573"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 3 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">3</div>
+              <h4 class="guide-step-title">
+                <span>Configurar Dialplan en Asterisk (/etc/asterisk/extensions.conf)</span>
+                <span class="help-pill help-pill-indigo">Dialplan</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Edita tu archivo <code>/etc/asterisk/extensions.conf</code> y define una extensión (ej. 900) para derivar la llamada hacia el servicio FastAGI:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>/etc/asterisk/extensions.conf</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>[from-internal]
+; Extensión 900: Atendida por PBX AI Voice Assistant
+exten => 900,1,NoOp(=== PBX AI - Conectando Llamada con Asistente ===)
+ same => n,Answer()
+ same => n,Wait(1)
+ same => n,AGI(agi://127.0.0.1:4573)
+ same => n,Hangup()</code></pre>
+              </div>
+              <p>Aplica los cambios en la consola de Asterisk sin reiniciar el servicio:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Asterisk CLI</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>asterisk -rx "dialplan reload"</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 4 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">4</div>
+              <h4 class="guide-step-title">
+                <span>Registrar Extensiones SIP en el Módulo aiSip</span>
+                <span class="help-pill help-pill-cyan">aiSip</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Entra al Panel de Control (<code>http://localhost:35248/</code>) en el módulo <strong>aiSip</strong> y da de alta las extensiones autorizadas (ej. 101, 102, 103) o troncales. Esto permite a PBX AI reconocer al llamante y aplicar sus preferencias de idioma y nombre automáticamente.</p>
+            </div>
+          </div>
+
+          <!-- Paso 5 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">5</div>
+              <h4 class="guide-step-title">
+                <span>Configurar TTS, ASR y VAD en aiSettings</span>
+                <span class="help-pill help-pill-emerald">Voz</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En el módulo <strong>aiSettings</strong>:</p>
+              <ul>
+                <li><strong>TTS Provider:</strong> <code>openai</code> (o <code>elevenlabs</code> para la máxima naturalidad).</li>
+                <li><strong>TTS Voice:</strong> <code>alloy</code>, <code>nova</code> u <code>onyx</code>.</li>
+                <li><strong>ASR Provider:</strong> <code>openai</code> (modelo <code>whisper-1</code>).</li>
+                <li><strong>Asterisk VAD:</strong> <code>1</code> (activa la detección automática de silencio para interrumpir o contestar inmediatamente cuando el usuario deja de hablar).</li>
+                <li><strong>Asterisk MOH:</strong> <code>1</code> (música de espera mientras el LLM procesa la respuesta).</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Paso 6 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">6</div>
+              <h4 class="guide-step-title">
+                <span>Directivas de Transferencia y Cuelgue de Llamada</span>
+                <span class="help-pill help-pill-amber">Comandos</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>PBX AI reconoce comandos especiales en corchetes dentro de la respuesta del modelo:</p>
+              <ul>
+                <li><code>[sip:102]</code> o <code>[sip:soporte]</code>: Asterisk realiza una transferencia inmediata de la llamada a la extensión 102.</li>
+                <li><code>[close]</code>: Asterisk cuelga la llamada de forma limpia tras despedirse del usuario.</li>
+              </ul>
+              <div class="guide-callout">
+                <strong>Consejo de Prompt:</strong> En <code>aiPrompts</code> para el canal <code>asterisk</code> agrega: <em>"Si el llamante pide hablar con una persona, di 'Te transfiero con soporte' e incluye la etiqueta [sip:soporte]. Al finalizar la llamada incluye [close]."</em>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 7 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-indigo">7</div>
+              <h4 class="guide-step-title">
+                <span>Prueba Real con Softphone (Zoiper / MicroSIP / Linphone)</span>
+                <span class="help-pill help-pill-emerald">Test</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Conéctate a tu central Asterisk con cualquier softphone usando la extensión 101. Marca <strong>900</strong>. Escucharás el saludo inicial del agente de voz y podrás hablar en lenguaje natural en tiempo real.</p>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================
+             GUÍA 3: WHATSAPP / META CLOUD API
+             ========================================== -->
+        <section class="guide-section" id="guide-meta">
+          <div class="guide-channel-hero">
+            <div class="guide-channel-hero-icon">📱</div>
+            <div class="guide-channel-hero-text">
+              <h4>WhatsApp Business Cloud API (Meta)</h4>
+              <p>Conexión directa y oficial con los servidores de WhatsApp de Meta. Permite atender conversaciones de texto y notas de voz con transcripción automática mediante Whisper y respuestas inteligentes.</p>
+            </div>
+          </div>
+
+          <!-- Paso 1 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">1</div>
+              <h4 class="guide-step-title">
+                <span>Crear una App en Meta for Developers</span>
+                <span class="help-pill help-pill-amber">Meta Portal</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <ol>
+                <li>Ingresa en <a href="https://developers.facebook.com" target="_blank" style="color: #fde68a;">developers.facebook.com</a> con tu cuenta de Facebook/Meta.</li>
+                <li>Haz clic en <strong>Mis Apps</strong> &rarr; <strong>Crear App</strong>.</li>
+                <li>Selecciona el tipo de app: <strong>Business</strong> (Negocios).</li>
+                <li>En la lista de productos disponibles, localiza <strong>WhatsApp</strong> y haz clic en <strong>Configurar</strong>.</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Paso 2 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">2</div>
+              <h4 class="guide-step-title">
+                <span>Obtener Phone Number ID y Token Permanente</span>
+                <span class="help-pill help-pill-amber">Credenciales</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En el menú lateral de WhatsApp &rarr; <strong>Introducción (Getting Started)</strong>:</p>
+              <ul>
+                <li><strong>Identificador de número de teléfono (Phone Number ID):</strong> Copia este número numérico (ej. <code>109283746592810</code>). Este será tu <code>metaUser</code>.</li>
+                <li><strong>Token de Acceso Permanente:</strong> En Meta Business Suite &rarr; Configuración del Negocio &rarr; Usuarios del Sistema (System Users), crea un usuario administrador con permisos <code>whatsapp_business_messaging</code> y genera un token sin vencimiento. Este será tu <code>metaAuth</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Paso 3 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">3</div>
+              <h4 class="guide-step-title">
+                <span>Configurar en PBX AI (aiSettings o pbx.json)</span>
+                <span class="help-pill help-pill-indigo">aiSettings</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En el módulo <strong>aiSettings</strong> del panel de administración o en <code>pbx.json</code> completa los siguientes campos:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Valores en pbx.json / aiSettings</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>{
+  "meta_url": "https://graph.facebook.com/v20.0/109283746592810/messages",
+  "meta_user": "109283746592810",
+  "meta_auth": "Bearer EAABwzLp12k8BAOzKeyDemoWhatsAppCloudAPI2024...",
+  "meta_token": "mi_clave_secreta_webhook_verificacion_123"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 4 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">4</div>
+              <h4 class="guide-step-title">
+                <span>Configurar Webhook en el Panel de Meta</span>
+                <span class="help-pill help-pill-emerald">Webhook /meta</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <ol>
+                <li>En el panel de Meta &rarr; WhatsApp &rarr; <strong>Configuración</strong> &rarr; <strong>Webhook</strong>, haz clic en <strong>Editar</strong>.</li>
+                <li><strong>URL de devolución de llamada:</strong> <code>https://tu-dominio.com/meta</code> (requiere HTTPS con certificado válido, o un túnel ngrok: <code>https://xxxx.ngrok-free.app/meta</code>).</li>
+                <li><strong>Token de verificación:</strong> Escribe exactamente el mismo valor de <code>meta_token</code> (ej. <code>mi_clave_secreta_webhook_verificacion_123</code>).</li>
+                <li>Haz clic en <strong>Verificar y Guardar</strong>. PBX AI responderá al handshake criptográfico de Meta con HTTP 200 y el challenge.</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Paso 5 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">5</div>
+              <h4 class="guide-step-title">
+                <span>Suscribirse al Campo 'messages'</span>
+                <span class="help-pill help-pill-cyan">Eventos</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En la misma sección de Webhook en Meta, en la tabla <strong>Campos del Webhook</strong>, busca <strong>`messages`</strong> y haz clic en <strong>Suscribirse</strong>. A partir de ese instante, cada mensaje o audio enviado a tu número de WhatsApp será reenviado a PBX AI.</p>
+            </div>
+          </div>
+
+          <!-- Paso 6 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-amber">6</div>
+              <h4 class="guide-step-title">
+                <span>Pruebas de Texto y Notas de Voz en WhatsApp</span>
+                <span class="help-pill help-pill-emerald">Test</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Envía un WhatsApp al número configurado diciendo <em>"Hola, ¿cuál es el horario de atención?"</em>. PBX AI responderá de forma instantánea. Si envías una nota de voz, el bot descargará el audio OGG, lo transcribirá con Whisper y enviará la respuesta por WhatsApp.</p>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==========================================
+             GUÍA 4: TELEGRAM BOT
+             ========================================== -->
+        <section class="guide-section" id="guide-telegram">
+          <div class="guide-channel-hero">
+            <div class="guide-channel-hero-icon">✈️</div>
+            <div class="guide-channel-hero-text">
+              <h4>Bot de Telegram Oficial</h4>
+              <p>Canal de mensajería instantánea mediante la API de Telegram Bots. Admite respuestas formateadas con Markdown, notas de voz transcritas con Whisper, comandos de reset (<code>/reset</code>) y ayuda (<code>/help</code>).</p>
+            </div>
+          </div>
+
+          <!-- Paso 1 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">1</div>
+              <h4 class="guide-step-title">
+                <span>Crear el Bot con @BotFather en Telegram</span>
+                <span class="help-pill help-pill-indigo">BotFather</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <ol>
+                <li>Abre la aplicación de Telegram y busca al usuario oficial verificado <strong><code>@BotFather</code></strong>.</li>
+                <li>Envía el comando <code>/newbot</code>.</li>
+                <li>Escribe el nombre visible de tu bot (ej. <em>Asistente IA PBX</em>).</li>
+                <li>Escribe el username público del bot (debe terminar obligatoriamente en <code>bot</code>, ej. <em>mi_empresa_ia_bot</em>).</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Paso 2 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">2</div>
+              <h4 class="guide-step-title">
+                <span>Copiar el HTTP API Token</span>
+                <span class="help-pill help-pill-amber">API Token</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>BotFather responderá confirmando la creación y te entregará el token de acceso:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Ejemplo de Token de Telegram</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>7182938475:AAH_DEMO_PBX_AI_BOT_TOKEN_TELEGRAM_2024</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 3 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">3</div>
+              <h4 class="guide-step-title">
+                <span>Guardar el Token en PBX AI (aiSettings o pbx.json)</span>
+                <span class="help-pill help-pill-indigo">aiSettings</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>En el Panel de Administración (<code>http://localhost:35248/</code>) accede al módulo <strong>aiSettings</strong> y pega tu token en el campo <strong>Telegram Token</strong>, o en <code>pbx.json</code>:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>pbx.json</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>{
+  "telegram_token": "7182938475:AAH_DEMO_PBX_AI_BOT_TOKEN_TELEGRAM_2024"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 4 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">4</div>
+              <h4 class="guide-step-title">
+                <span>Registrar el Webhook Oficial de Telegram hacia tu PBX AI</span>
+                <span class="help-pill help-pill-emerald">Webhook /tg</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Ejecuta en tu terminal el siguiente comando cURL (requiere HTTPS en tu dominio o ngrok):</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Comando cURL de Registro de Webhook</span>
+                  <button class="code-copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+                <pre><code>curl -F "url=https://tu-dominio-publico.com/tg" https://api.telegram.org/bot7182938475:AAH_DEMO_PBX_AI_BOT_TOKEN_TELEGRAM_2024/setWebhook</code></pre>
+              </div>
+              <p>Telegram responderá confirmando el registro exitoso:</p>
+              <div class="code-container">
+                <div class="code-header">
+                  <span>Respuesta Esperada</span>
+                </div>
+                <pre><code>{"ok": true, "result": true, "description": "Webhook was set"}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 5 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">5</div>
+              <h4 class="guide-step-title">
+                <span>Gestión de Usuarios en aiUsers</span>
+                <span class="help-pill help-pill-cyan">Usuarios</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Si <code>userRestricted = 0</code> en <code>aiSettings</code>, cualquier persona de Telegram puede hablar con el bot. Si deseas restringir el acceso a clientes o personal autorizado, registra el chat ID numérico o username del usuario en el módulo <strong>aiUsers</strong>.</p>
+            </div>
+          </div>
+
+          <!-- Paso 6 -->
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge guide-step-badge-blue">6</div>
+              <h4 class="guide-step-title">
+                <span>Pruebas de Texto, Comandos y Notas de Voz</span>
+                <span class="help-pill help-pill-emerald">Test</span>
+              </h4>
+            </div>
+            <div class="guide-step-body">
+              <p>Abre el chat de tu nuevo bot en Telegram, pulsa <strong>Iniciar</strong> (<code>/start</code>) y escribe cualquier mensaje. También puedes probar comandos del sistema como <code>/reset</code> para reiniciar la memoria de la conversación o <code>/help</code> para consultar las acciones disponibles.</p>
+            </div>
           </div>
         </section>
 

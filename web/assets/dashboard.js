@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initDrawer();
   initHelpModal();
+  initGuideModal();
   initFilters();
 
   loadAllData();
@@ -360,6 +361,105 @@ function initHelpModal() {
     });
   }
 }
+
+function initGuideModal() {
+  const guideBtn = document.getElementById("btn-guide");
+  const backdrop = document.getElementById("guide-modal-backdrop");
+  const closeBtn = document.getElementById("guide-close-btn");
+  const searchInput = document.getElementById("guide-search-input");
+  const tabs = document.querySelectorAll(".guide-tab-btn");
+  const sections = document.querySelectorAll(".guide-section");
+
+  if (!guideBtn || !backdrop) return;
+
+  guideBtn.addEventListener("click", () => {
+    backdrop.classList.add("active");
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
+    // Restore active tab
+    const activeTab = document.querySelector(".guide-tab-btn.active");
+    const targetId = activeTab ? activeTab.getAttribute("data-guide-tab") : "guide-chat";
+    sections.forEach(sec => {
+      sec.classList.toggle("active", sec.id === targetId);
+      sec.querySelectorAll(".guide-step-card, .code-container, p, li, h3, h4").forEach(el => el.style.display = "");
+    });
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      backdrop.classList.remove("active");
+    });
+  }
+
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) {
+      backdrop.classList.remove("active");
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && backdrop.classList.contains("active")) {
+      backdrop.classList.remove("active");
+    }
+  });
+
+  // Tab navigation
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const targetId = tab.getAttribute("data-guide-tab");
+      sections.forEach(sec => {
+        sec.classList.toggle("active", sec.id === targetId);
+        sec.querySelectorAll(".guide-step-card, .code-container, p, li, h3, h4").forEach(el => el.style.display = "");
+      });
+
+      const body = document.getElementById("guide-body");
+      if (body) body.scrollTop = 0;
+    });
+  });
+
+  // Search filter inside guide modal
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) {
+        const activeTab = document.querySelector(".guide-tab-btn.active");
+        const targetId = activeTab ? activeTab.getAttribute("data-guide-tab") : "guide-chat";
+        sections.forEach(sec => {
+          sec.classList.toggle("active", sec.id === targetId);
+          sec.querySelectorAll(".guide-step-card, .code-container, p, li, h3, h4").forEach(el => el.style.display = "");
+        });
+        return;
+      }
+
+      sections.forEach(sec => {
+        let hasMatch = false;
+        const elements = sec.querySelectorAll(".guide-step-card, .code-container, p, li, h3, h4");
+        elements.forEach(el => {
+          const match = el.textContent.toLowerCase().includes(q);
+          el.style.display = match ? "" : "none";
+          if (match) hasMatch = true;
+        });
+        sec.classList.toggle("active", hasMatch);
+      });
+    });
+  }
+}
+
+window.openGuideModal = function(tabId) {
+  const backdrop = document.getElementById("guide-modal-backdrop");
+  if (!backdrop) return;
+  backdrop.classList.add("active");
+
+  if (tabId) {
+    const tabBtn = document.querySelector(`.guide-tab-btn[data-guide-tab="${tabId}"]`);
+    if (tabBtn) tabBtn.click();
+  }
+};
 
 // Global copy-to-clipboard for code blocks
 window.copyCode = function(button) {
