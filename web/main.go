@@ -25,9 +25,12 @@ func Router() error {
 	// Re-route default Core path so we can wrap "/" and attach session cookie if present
 	web.RouterPathCore = "/tibula-core"
 	web.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" && r.URL.Query().Get("ejaSession") == "" {
+		// Only redirect GET requests to prevent intercepting form submissions (POST search, save, etc.)
+		if r.Method == http.MethodGet && r.URL.Path == "/" && r.URL.Query().Get("ejaSession") == "" {
 			if cookie, err := r.Cookie("ejaSession"); err == nil && cookie.Value != "" && db.SessionCheck(cookie.Value) {
-				http.Redirect(w, r, "/?ejaSession="+cookie.Value, http.StatusFound)
+				q := r.URL.Query()
+				q.Set("ejaSession", cookie.Value)
+				http.Redirect(w, r, "/?"+q.Encode(), http.StatusFound)
 				return
 			}
 		}
