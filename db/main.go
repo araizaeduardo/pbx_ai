@@ -42,6 +42,20 @@ func AdminCheck(username, password string) bool {
 	return len(db.UserGetAllByUserAndPass(username, password)) > 0
 }
 
+// SessionCheck verifies if an ejaSession token corresponds to a valid, active user session.
+func SessionCheck(sessionHash string) bool {
+	if sessionHash == "" {
+		return false
+	}
+	db, err := tibulaConnection()
+	if err != nil {
+		return false
+	}
+	defer db.Close()
+	return len(db.UserGetAllBySession(sessionHash)) > 0
+}
+
+
 var userUpdatableFields = map[string]bool{
 	"welcome":  true,
 	"language": true,

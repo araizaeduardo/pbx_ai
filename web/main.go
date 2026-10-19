@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/eja/pbx/asterisk"
+	"github.com/eja/pbx/db"
 	"github.com/eja/pbx/pbx"
 	"github.com/eja/pbx/sys"
 	"github.com/eja/tibula/api"
@@ -19,6 +20,18 @@ import (
 var embeddedFiles embed.FS
 
 func Router() error {
+	// Re-route default Core path so we can wrap "/" and attach session cookie if present
+	web.RouterPathCore = "/tibula-core"
+	web.Router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" && r.URL.Query().Get("ejaSession") == "" {
+			if cookie, err := r.Cookie("ejaSession"); err == nil && cookie.Value != "" && db.SessionCheck(cookie.Value) {
+				http.Redirect(w, r, "/?ejaSession="+cookie.Value, http.StatusFound)
+				return
+			}
+		}
+		web.Core(w, r)
+	})
+
 	assetFS, err := fs.Sub(embeddedFiles, "assets")
 	if err != nil {
 		panic(err)

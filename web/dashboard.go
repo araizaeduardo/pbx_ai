@@ -17,52 +17,83 @@ import (
 // dashboardAuthFailLimiter throttles failed login attempts per IP to slow down brute force.
 var dashboardAuthFailLimiter = newRateLimiter(10, time.Minute)
 
-// checkDashboardAuth always requires HTTP Basic credentials. Tibula admin users
-// (ejaUsers) are always accepted; aiUsers are accepted too when userRestricted is on.
+// checkDashboardAuth verifies authorization via either active Tibula session (cookie/query/header)
+// or HTTP Basic credentials. Tibula admin users (ejaUsers) are always accepted.
 func checkDashboardAuth(w http.ResponseWriter, r *http.Request) bool {
-	unauthorized := func(status int, msg string) bool {
-		w.Header().Set("WWW-Authenticate", `Basic realm="PBX AI Dashboard", charset="UTF-8"`)
-		http.Error(w, msg, status)
-		return false
+	// 1. Check session from Cookie, Query Parameter, or Header
+	sessionHash := ""
+	if cookie, err := r.Cookie("ejaSession"); err == nil && cookie.Value != "" {
+		sessionHash = cookie.Value
+	}
+	if sessionHash == "" {
+		sessionHash = r.URL.Query().Get("ejaSession")
+	}
+	if sessionHash == "" {
+		sessionHash = r.Header.Get("X-Session")
 	}
 
-	tooMany := func() bool {
+	if sessionHash != "" && db.SessionCheck(sessionHash) {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "ejaSession",
+			Value:    sessionHash,
+			Path:     "/",
+			HttpOnly: false,
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   86400 * 7,
+		})
+		return true
+	}
+
+	// 2. Check HTTP Basic Auth (for direct curl/API calls or browser prompts)
+	user, pass, ok := r.BasicAuth()
+	if ok && user != "" && pass != "" {
+		if db.AdminCheck(user, pass) {
+			return true
+		}
+		if sys.Number(db.Settings()["userRestricted"]) > 0 {
+			if row, err := db.UserGetWithPassword(user, pass); err == nil && row["uuid"] != "" {
+				return true
+			}
+		}
+	}
+
+	ip := clientIP(r)
+	if dashboardAuthFailLimiter.blocked(ip) {
 		w.Header().Set("Retry-After", "60")
 		http.Error(w, "Too many failed attempts", http.StatusTooManyRequests)
 		return false
 	}
 
-	ip := clientIP(r)
-	if dashboardAuthFailLimiter.blocked(ip) {
-		return tooMany()
-	}
-
-	user, pass, ok := r.BasicAuth()
-	if !ok || user == "" || pass == "" {
-		return unauthorized(http.StatusUnauthorized, "Unauthorized")
-	}
-
-	if db.AdminCheck(user, pass) {
-		return true
-	}
-	if sys.Number(db.Settings()["userRestricted"]) > 0 {
-		if row, err := db.UserGetWithPassword(user, pass); err == nil && row["uuid"] != "" {
-			return true
+	// If explicit Basic credentials were sent and failed, count against limiter
+	if ok {
+		if !dashboardAuthFailLimiter.allow(ip) {
+			w.Header().Set("Retry-After", "60")
+			http.Error(w, "Too many failed attempts", http.StatusTooManyRequests)
+			return false
 		}
 	}
 
-	// Record the failed attempt.
-	if !dashboardAuthFailLimiter.allow(ip) {
-		return tooMany()
+	// Only trigger browser WWW-Authenticate popups if the request is not an AJAX/fetch call
+	// or if the user explicitly navigated to /dashboard. This prevents the browser from
+	// showing multiple competing login modal dialogs on parallel background fetch requests.
+	if r.Header.Get("X-Requested-With") == "" && (r.Header.Get("Authorization") != "" || r.URL.Path == "/dashboard") {
+		w.Header().Set("WWW-Authenticate", `Basic realm="PBX AI Dashboard", charset="UTF-8"`)
 	}
-	return unauthorized(http.StatusUnauthorized, "Unauthorized")
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	return false
 }
 
 func dashboardRedirectRouter(w http.ResponseWriter, r *http.Request) {
 	if !checkDashboardAuth(w, r) {
 		return
 	}
-	http.Redirect(w, r, "/pbx/dashboard.html", http.StatusFound)
+	target := "/pbx/dashboard.html"
+	if s := r.URL.Query().Get("ejaSession"); s != "" {
+		target += "?ejaSession=" + s
+	} else if c, err := r.Cookie("ejaSession"); err == nil && c.Value != "" {
+		target += "?ejaSession=" + c.Value
+	}
+	http.Redirect(w, r, target, http.StatusFound)
 }
 
 func dashboardStatsHandler(w http.ResponseWriter, r *http.Request) {

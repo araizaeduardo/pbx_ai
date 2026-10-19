@@ -3,7 +3,48 @@
 let sessionsData = [];
 let autoRefreshTimer = null;
 
+function getSessionToken() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromUrl = urlParams.get("ejaSession");
+  if (fromUrl) {
+    document.cookie = "ejaSession=" + encodeURIComponent(fromUrl) + "; path=/; max-age=604800; SameSite=Lax";
+    return fromUrl;
+  }
+  const match = document.cookie.match(/(?:^|;\s*)ejaSession=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+function getAuthHeaders() {
+  const headers = {
+    "X-Requested-With": "XMLHttpRequest"
+  };
+  const token = getSessionToken();
+  if (token) {
+    headers["X-Session"] = token;
+  }
+  return headers;
+}
+
+function handleAuthError(res) {
+  if (res.status === 401) {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+    // Clean redirect to login if session expired or missing
+    window.location.href = "/";
+    return true;
+  }
+  return false;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  const session = getSessionToken();
+  const adminBtn = document.getElementById("btn-admin-menu") || document.querySelector('a[title="Open Admin Panel"]');
+  if (adminBtn && session) {
+    adminBtn.href = "/?ejaSession=" + encodeURIComponent(session);
+  }
+
   initTabs();
   initDrawer();
   initHelpModal();
@@ -88,7 +129,11 @@ async function loadAllData() {
 
 async function fetchStats() {
   try {
-    const res = await fetch("/api/dashboard/stats");
+    const res = await fetch("/api/dashboard/stats", {
+      credentials: "same-origin",
+      headers: getAuthHeaders()
+    });
+    if (handleAuthError(res)) return;
     if (!res.ok) throw new Error("Stats request failed");
     const data = await res.json();
 
@@ -160,7 +205,11 @@ function updateProviderBadge(elId, isOk, label) {
 
 async function fetchSessions() {
   try {
-    const res = await fetch("/api/dashboard/sessions");
+    const res = await fetch("/api/dashboard/sessions", {
+      credentials: "same-origin",
+      headers: getAuthHeaders()
+    });
+    if (handleAuthError(res)) return;
     if (!res.ok) return;
     sessionsData = await res.json();
 
@@ -222,7 +271,11 @@ async function fetchLogs() {
     const search = document.getElementById("log-search-input").value;
     const url = `/api/dashboard/logs?channel=${encodeURIComponent(channel)}&search=${encodeURIComponent(search)}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      credentials: "same-origin",
+      headers: getAuthHeaders()
+    });
+    if (handleAuthError(res)) return;
     if (!res.ok) return;
     const logs = await res.json();
 

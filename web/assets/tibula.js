@@ -6,6 +6,36 @@ if (document.documentElement) {
   document.documentElement.setAttribute('data-bs-theme', 'dark');
 }
 
+// Sync and persist active session to Cookie
+(function() {
+  var sessionInput = document.querySelector('input[name="ejaSession"]');
+  var session = sessionInput ? sessionInput.value : '';
+  if (!session) {
+    var urlParams = new URLSearchParams(window.location.search);
+    session = urlParams.get('ejaSession') || '';
+  }
+  if (session) {
+    document.cookie = "ejaSession=" + encodeURIComponent(session) + "; path=/; max-age=604800; SameSite=Lax";
+    sessionStorage.removeItem('pbx_login_cleared');
+  } else {
+    // If on login page with no session in URL, check if we have a stored session cookie
+    var isLoginPage = document.querySelector('input[name="ejaValues[username]"]') || document.querySelector('button[value="login"]');
+    if (isLoginPage) {
+      var match = document.cookie.match(/(?:^|;\s*)ejaSession=([^;]+)/);
+      var cookieSession = match ? decodeURIComponent(match[1]) : '';
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('ejaSession')) {
+        // If the URL already carried ejaSession and we're on login, session is expired
+        document.cookie = "ejaSession=; path=/; max-age=0";
+      } else if (cookieSession && !sessionStorage.getItem('pbx_login_cleared')) {
+        // Restore session
+        sessionStorage.setItem('pbx_login_cleared', '1');
+        window.location.replace('/?ejaSession=' + encodeURIComponent(cookieSession));
+      }
+    }
+  }
+})();
+
 function tableRowCheck(obj) {
   var input = obj.querySelector('input');
   if (input) {
@@ -148,7 +178,7 @@ function enhanceNavbar() {
 
   quickContainer.innerHTML = `
     ${configBadge}
-    <a href="/dashboard" class="pbx-nav-badge pbx-nav-badge-dash" title="Operations & Telephony Dashboard">
+    <a href="/dashboard${session ? '?ejaSession=' + encodeURIComponent(session) : ''}" class="pbx-nav-badge pbx-nav-badge-dash" title="Operations & Telephony Dashboard">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       <span>Dashboard</span>
     </a>
@@ -261,7 +291,7 @@ function initHomeLauncher() {
       </a>
 
       <!-- 8. Real-time Dashboard -->
-      <a href="/dashboard" class="pbx-launcher-card" style="border-color: rgba(99, 102, 241, 0.4);">
+      <a href="/dashboard${session ? '?ejaSession=' + encodeURIComponent(session) : ''}" class="pbx-launcher-card" style="border-color: rgba(99, 102, 241, 0.4);">
         <div class="pbx-card-icon pbx-icon-blue">📊</div>
         <div class="pbx-card-body">
           <h4>Dashboard de Operaciones</h4>
